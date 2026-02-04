@@ -1,5 +1,8 @@
 # coding=utf-8
 from __future__ import division as __division__
+
+from opticspy._plot_output import save_figure
+
 import numpy as __np__
 from numpy import cos as __cos__
 from numpy import sin as __sin__
@@ -159,7 +162,7 @@ class Coefficient(object):
 			ax.text2D(0.02, 0.1, label_1, transform=ax.transAxes,fontsize=14)
 		else:
 			pass
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_zernike__zernikesurface.png', outdir='out')
 
 		if matrix == True:
 			return Z
@@ -193,7 +196,7 @@ class Coefficient(object):
 			ax.set_xlabel(self.listcoefficient()[1],fontsize=18)
 		__plt__.colorbar()
 		ax.set_aspect('equal', 'datalim')
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_zernike__zernikemap.png', outdir='out')
 
 	def zernikeline(self):
 		"""
@@ -214,7 +217,7 @@ class Coefficient(object):
 		__plt__.plot(X,ZX)
 		__plt__.plot(Y,ZY)
 		__plt__.grid()
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_zernike__zernikeline.png', outdir='out')
 
 	def zernikematrix(self,l = 100):
 		x = __np__.linspace(-1, 1, l)
@@ -278,7 +281,7 @@ class Coefficient(object):
 		fig = __plt__.figure(figsize=(9, 6), dpi=80)
 		__plt__.imshow(abs(PSF),cmap=__cm__.RdYlGn)
 		__plt__.colorbar()
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_zernike__psf.png', outdir='out')
 		return 0
 
 	def otf(self,r=1,lambda_1=632*10**(-9),z=0.1):
@@ -298,7 +301,7 @@ class Coefficient(object):
 		fig = __plt__.figure(figsize=(9, 6), dpi=80)
 		__plt__.imshow(abs(MTF),cmap=__cm__.bwr)
 		__plt__.colorbar()
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_zernike__mtf.png', outdir='out')
 		if matrix == True:
 			return MTF
 		else:
@@ -319,7 +322,7 @@ class Coefficient(object):
 					PTF[i][j] = 0
 		__plt__.imshow(abs(PTF),cmap=__cm__.rainbow)
 		__plt__.colorbar()
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_zernike__ptf.png', outdir='out')
 		return 0
 
 
@@ -469,7 +472,7 @@ def fitting(Z,n,remain3D=False,remain2D=False,barchart=False,interferogram=False
 		__plt__.ylabel('Coefficient',fontsize=18)
 		__plt__.title('Fitting Zernike Polynomials Coefficient',fontsize=18)
 
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_zernike__fitting.png', outdir='out')
 	else:
 		pass
 
@@ -491,7 +494,7 @@ def fitting(Z,n,remain3D=False,remain2D=False,barchart=False,interferogram=False
 		rms1 = round(__tools__.rms(Z_new),5)
 		label_new = "P-V: "+str(p2v)+"\n"+"RMS: "+str(rms1)
 		ax.text2D(0.02, 0.1,label_new, transform=ax.transAxes)
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_zernike__fitting_2.png', outdir='out')
 	else:
 		pass
 
@@ -502,7 +505,7 @@ def fitting(Z,n,remain3D=False,remain2D=False,barchart=False,interferogram=False
 		__plt__.colorbar()
 		__plt__.title('Remaining Aberration',fontsize=18)
 		ax.set_aspect('equal', 'datalim')
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_zernike__fitting_3.png', outdir='out')
 	else:
 		pass
 

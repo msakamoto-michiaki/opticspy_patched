@@ -1,3 +1,5 @@
+from opticspy._plot_output import save_figure
+
 import numpy as __np__
 from numpy import cos as __cos__
 from numpy import sin as __sin__
@@ -41,7 +43,7 @@ class Coefficient(object):
 		surf = ax.plot_surface(X, Y, W, rstride=1, cstride=1, cmap=__cm__.RdYlGn,
 	        linewidth=0, antialiased=False, alpha = 0.6)
 		fig.colorbar(surf, shrink=1, aspect=30)
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_seidel2__seidelsurface.png', outdir='out')
 
 
 
@@ -59,7 +61,7 @@ class Coefficient(object):
 		fig = __plt__.figure(figsize=(9, 6), dpi=80)
 		__plt__.imshow(-Ixy, extent=[-PR,PR,-PR,PR])
 		__plt__.set_cmap('Greys')
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_seidel2__twyman_green.png', outdir='out')
 
 
 def __seidelpolar__(coefficient,r,u):

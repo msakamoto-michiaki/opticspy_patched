@@ -1,0 +1,110 @@
+prescription:
+- num: 1
+  R: 10000000.0
+  t: 150.0894321271246
+  glass: air
+  stop: false
+- num: 2
+  R: 10000000.0
+  t: 6.37715
+  glass: air
+  stop: false
+- num: 3
+  R: -4.89305423085
+  t: 1.23505155819
+  glass: E-ADF10_hoya
+  stop: false
+- num: 4
+  R: 331.759003589
+  t: 3.77381460713
+  glass: E-LAF7_hoya
+  stop: false
+- num: 5
+  R: -7.999295758640001
+  t: 12.1150406847
+  glass: air
+  stop: false
+- num: 6
+  R: 10000000.0
+  t: 4.43944811801
+  glass: air
+  stop: true
+- num: 7
+  R: 17.8114619056
+  t: 2.60245961289
+  glass: FCD1_hoya
+  stop: false
+- num: 8
+  R: -6.811396202339999
+  t: 1.00094600496
+  glass: FDS30_hoya
+  stop: false
+- num: 9
+  R: 65.8688649511
+  t: 0.140215163505
+  glass: air
+  stop: false
+- num: 10
+  R: 11.4744810205
+  t: 3.94008745589
+  glass: FCD1_hoya
+  stop: false
+- num: 11
+  R: -6.1053570162
+  t: 1.47039795357
+  glass: BAC4_hoya
+  stop: false
+- num: 12
+  R: -14.4049365763
+  t: 0.100094600496
+  glass: air
+  stop: false
+- num: 13
+  R: 7.12077951297
+  t: 2.20208121091
+  glass: FCD1_hoya
+  stop: false
+- num: 14
+  R: 14.3693657679
+  t: 0.100094600496
+  glass: air
+  stop: false
+- num: 15
+  R: 4.01701966949
+  t: 4.660603133840001
+  glass: FD110_hoya
+  stop: false
+- num: 16
+  R: 2.43163700957
+  t: 0.84
+  glass: air
+  stop: false
+- num: 17
+  R: 10000000.0
+  t: 0.17
+  glass: N-K5_schott
+  stop: false
+- num: 18
+  R: 10000000.0
+  t: -0.0003711647401700699
+  glass: air
+  stop: false
+- num: 19
+  R: 10000000.0
+  t: 0.000371137249601
+  glass: air
+  stop: false
+wavelengths_nm:
+- 656.3
+- 546.1
+- 486.1
+start_surface: 2
+end_surface: 18
+image_surface: 19
+image_z_abs: null
+image_mode: paraxial
+object_distance_mm: -500.0
+object_medium: air
+image_medium: air
+reference_surface: 2
+opticspy_root: null

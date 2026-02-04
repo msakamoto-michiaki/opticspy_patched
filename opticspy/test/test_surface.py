@@ -1,3 +1,5 @@
+from opticspy._plot_output import save_figure
+
 import numpy as __np__
 from numpy import sqrt as __sqrt__
 from numpy import cos as __cos__
@@ -33,7 +35,7 @@ def spherical_surf(l1):
 	cset = ax.contourf(X, Y, Z, zdir='z', offset=-1, cmap=__cm__.RdYlGn)
 	fig.colorbar(surf, shrink=1, aspect=30)
 	__plt__.title('Test Surface: Spherical surface with some noise',fontsize=16)
-	__plt__.show()
+	save_figure(__plt__, 'opticspy_test_test_surface__spherical_surf.png', outdir='out')
 
 	#Generate test surface matrix from a detector
 	x = __np__.linspace(-1, 1, l1)

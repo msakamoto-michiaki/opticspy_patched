@@ -1,4 +1,7 @@
 from __future__ import division as __division__
+
+from opticspy._plot_output import save_figure, set_window_title
+
 import numpy as __np__
 import matplotlib.pyplot as __plt__
 from . import cal_tools,trace
@@ -21,7 +24,7 @@ def spotdiagram(Lens,field_plot,wave_plot,n=12,grid_type='grid'):
     c_list = ['b','g','r','c','m','y','k','w']
 
     fig = __plt__.figure(2,figsize=(5, 9), dpi=80)
-    fig.canvas.set_window_title('Spotdiagram')
+    set_window_title(fig, 'Spotdiagram')
     fig.suptitle("Spotdiagram", fontsize="x-large")
     m = 0
     tmp = []
@@ -63,7 +66,7 @@ def spotdiagram(Lens,field_plot,wave_plot,n=12,grid_type='grid'):
         n = n - 1
         m = m + 1
 
-    __plt__.show()
+    save_figure(__plt__, 'opticspy_ray_tracing_analysis__spotdiagram.png', outdir='out')
     return 0
 
 def spotdiamgram_field_wave(Lens,field_num,wave_num):
@@ -87,7 +90,7 @@ def Ray_fan(Lens,field_plot,wave_plot):
     wave_plot_length = len(wave_plot)
     c_list = ['b','g','r','c','m','y','k','w']
     fig = __plt__.figure(5,figsize=(10, 9), dpi=80)
-    fig.canvas.set_window_title('Ray aberration')
+    set_window_title(fig, 'Ray aberration')
     fig.suptitle("Ray aberration: "+Lens.lens_name, fontsize="x-large")
     m = 0
     Py = __np__.linspace(-1,1,25)
@@ -144,7 +147,7 @@ def Ray_fan(Lens,field_plot,wave_plot):
         __plt__.plot([0,0],[-max_E,max_E],c='k')
 
         n = n - 1
-    __plt__.show()
+    save_figure(__plt__, 'opticspy_ray_tracing_analysis__Ray_fan.png', outdir='out')
     return 0
 
 def Y_fan(Lens,field_plot,wave_plot):
@@ -157,7 +160,7 @@ def Y_fan(Lens,field_plot,wave_plot):
 
     c_list = ['b','g','r','c','m','y','k','w']
     fig = __plt__.figure(3,figsize=(5, 9), dpi=80)
-    fig.canvas.set_window_title('Ray aberration')
+    set_window_title(fig, 'Ray aberration')
     fig.suptitle("Ray aberration", fontsize="x-large")
 
     m = 0
@@ -188,7 +191,7 @@ def Y_fan(Lens,field_plot,wave_plot):
         __plt__.plot([0,0],[-max_Ey,max_Ey],c='k')
         n = n - 1
 
-    __plt__.show()
+    save_figure(__plt__, 'opticspy_ray_tracing_analysis__Y_fan.png', outdir='out')
     return 0
 
 def Y_fan_field_wave(Lens,field_num,wave_num):
@@ -213,7 +216,7 @@ def X_fan(Lens,field_plot,wave_plot):
 
     c_list = ['b','g','r','c','m','y','k','w']
     fig = __plt__.figure(4,figsize=(5, 9), dpi=80)
-    fig.canvas.set_window_title('Ray aberration')
+    set_window_title(fig, 'Ray aberration')
     fig.suptitle("Ray aberration", fontsize="x-large")
     m = 0
     Px = __np__.linspace(0,1,20)
@@ -242,7 +245,7 @@ def X_fan(Lens,field_plot,wave_plot):
         __plt__.plot([0,1],[0,0],c='k')
         __plt__.plot([0,0],[-max_Ex,max_Ex],c='k')
         n = n - 1
-    __plt__.show()
+    save_figure(__plt__, 'opticspy_ray_tracing_analysis__X_fan.png', outdir='out')
     return 0
 
 def X_fan_field_wave(Lens,field_num,wave_num):

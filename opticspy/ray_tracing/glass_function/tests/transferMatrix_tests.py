@@ -1,3 +1,5 @@
+from opticspy._plot_output import save_figure
+
 #    This file is part of PyTMM.
 #
 #    PyTMM is free software: you can redistribute it and/or modify
@@ -62,4 +64,4 @@ plt.plot(wavelengths, r1)
 plt.plot(wavelengths, r2)
 plt.plot(wavelengths, r3)
 plt.legend(['1.46', '1.46-0.001j', '1.46-0.01j', '1.46-0.1j'])
-plt.show()
+save_figure(plt, 'opticspy_ray_tracing_glass_function_tests_transferMatrix_tests__module.png', outdir='out')

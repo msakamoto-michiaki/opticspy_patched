@@ -1,4 +1,7 @@
 from __future__ import division as __division__
+
+from opticspy._plot_output import save_figure
+
 import numpy as __np__
 import matplotlib.pyplot as __plt__
 
@@ -32,7 +35,7 @@ def zoom_cal(f1,f2,fshort,flong):
 	__plt__.title('Lens position\n'+' f1='+str(f1)+'mm f2='+str(f2)+\
 				'mm fshort='+str(fshort)+'mm flong='+str(flong)+'mm',fontsize=18) 
 	__plt__.grid(b=True, which='both', color='0.65',linestyle='--')
-	__plt__.show()
+	save_figure(__plt__, 'opticspy_lens_zoom_position__zoom_cal.png', outdir='out')
 	return 0
 
 def __solve__(f1,f2,L,M):
@@ -89,7 +92,7 @@ def zoom_cal2(f1,f2,L,Mhigh,Mlow):
 	min_1 = min(min(P1a),min(P2a),min(P3a))
 	max_1 = max(max(P1a),max(P2a),max(P3a))
 	__plt__.axis([min(M), max(M), min_1-50, max_1+50])
-	__plt__.show()
+	save_figure(__plt__, 'opticspy_lens_zoom_position__zoom_cal2.png', outdir='out')
 	
 	__plt__.figure(2,figsize=(8, 6), dpi=80)
 	__plt__.plot(M,P1b,'b-s',label='Lens #1')
@@ -103,7 +106,7 @@ def zoom_cal2(f1,f2,L,Mhigh,Mlow):
 	min_2 = min(min(P1b),min(P2b),min(P3b))
 	max_2 = max(max(P1b),max(P2b),max(P3b))
 	__plt__.axis([min(M), max(M), min_2-50, max_2+50])
-	__plt__.show()
+	save_figure(__plt__, 'opticspy_lens_zoom_position__zoom_cal2_2.png', outdir='out')
 	return 0
 
 def zoom_cal3(f0,f1,f2,flong,fshort,L_prime):
@@ -138,7 +141,7 @@ def zoom_cal3(f0,f1,f2,flong,fshort,L_prime):
 	min_1 = min(min(P0a),min(P1a),min(P2a))
 	max_1 = max(max(P0a),max(P1a),max(P2a))
 	__plt__.axis([min(F), max(F), min_1-50, max_1+50])
-	__plt__.show()
+	save_figure(__plt__, 'opticspy_lens_zoom_position__zoom_cal3.png', outdir='out')
 	
 	__plt__.figure(1,figsize=(8, 6), dpi=80)
 	__plt__.plot(F,P0b,'b-d',label='Lens #1')
@@ -152,7 +155,7 @@ def zoom_cal3(f0,f1,f2,flong,fshort,L_prime):
 	min_2 = min(min(P0b),min(P1b),min(P2b))
 	max_2 = max(max(P0b),max(P1b),max(P2b))
 	__plt__.axis([min(F), max(F), min_2-50, max_2+50])
-	__plt__.show()
+	save_figure(__plt__, 'opticspy_lens_zoom_position__zoom_cal3_2.png', outdir='out')
 	return 0
 
 

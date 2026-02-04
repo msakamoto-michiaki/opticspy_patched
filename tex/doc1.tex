@@ -1,0 +1,584 @@
+\documentclass[a4paper,11pt]{jsarticle} % or ujsarticle がある環境ならそれでもOK
+
+\usepackage[dvipdfmx]{graphicx}
+\usepackage[dvipdfmx]{xcolor}   % xcolor使うなら
+\usepackage[dvipdfmx]{geometry} % 任意（警告回避に）
+\usepackage[dvipdfmx]{hyperref} % hyperrefは後ろ
+\usepackage{amsmath,amssymb}
+\usepackage{siunitx}
+\usepackage{bm}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage{subcaption}
+\captionsetup[subfigure]{
+    position=top,
+    justification=raggedright, % 左寄せ
+    singlelinecheck=off        % キャプションが短くても左寄せを維持する
+}
+\usepackage{float} %
+
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  columns=fullflexible,
+  breaklines=true,
+  frame=single,
+  framerule=0.4pt,
+  numbers=left,
+  numberstyle=\tiny,
+  xleftmargin=2.2em,
+  showstringspaces=false
+}
+
+\begin{document}
+
+\section{目的と概要}
+本仕様書は，\texttt{opticspy\_abcd\_layout\_report\_general.py} の機能・入出力・アルゴリズム・数値規約・例外条件を定義する．
+本モジュールは「任意のレンズ処方（surface list）」に対し，近軸（paraxial）ABCD行列とカーディナル量（有効焦点距離，主平面，焦点位置）を同一書式でレポート出力し，任意で opticspy を用いたレイアウト図（PNG）を保存する．
+
+\subsection{提供機能（要約）}
+\begin{itemize}
+  \item 処方（面列）・計算範囲（start/end面）から，\textbf{end面直後まで}の近軸システム行列 $M=\begin{bmatrix}A&B\\C&D\end{bmatrix}$ を計算する．
+  \item 空気$\rightarrow$空気（air-to-air）系として，$f'$，主平面 $H,H'$，BFL/FFL を算出する（reduced-angle規約）．
+  \item 処方で指定した像面（面番号または絶対$z$）と，ABCD由来の後側焦点面（BFL）を比較し差分を報告する．
+  \item opticspy が利用可能な場合，処方を opticspy Lens に投入しレイアウト図を PNG 保存する．
+\end{itemize}
+
+\section{前提・依存関係}
+\subsection{依存ライブラリ}
+\begin{itemize}
+  \item Python 3.9 以上（型注釈・dataclass使用）
+  \item numpy（$2\times2$行列計算）
+  \item opticspy（任意：屈折率データ参照およびレイアウト図生成）
+  \item matplotlib（任意：PNG保存用，バックエンドは Agg）
+\end{itemize}
+
+\subsection{opticspy の配置と探索}
+\begin{itemize}
+  \item opticspy を import 可能にするため，\texttt{ensure\_opticspy\_importable()} が \texttt{sys.path} へ探索パスを追加する．
+  \item 探索パスの決定規則：
+    \begin{enumerate}
+      \item 引数 \texttt{opticspy\_root} が与えられればそれを使用
+      \item そうでなければ環境変数 \texttt{OPTICSPY\_ROOT} を使用
+      \item それも無ければデフォルト \texttt{/mnt/data/opticspy\_work/opticspy-master} を使用
+    \end{enumerate}
+  \item opticspy の一部スナップショットが依存する可能性がある \texttt{unwrap} を try-import し，失敗しても無視する（安全策）．
+\end{itemize}
+
+\section{数値規約・座標系・符号規約}
+\subsection{光線ベクトル（reduced-angle規約）}
+本モジュールは reduced-angle（縮小角）規約を採用し，光線ベクトルを
+\[
+\mathbf{r}=\begin{bmatrix}y\\u\end{bmatrix},\quad u=n\theta
+\]
+と定義する．ここで $y$ は光軸からの高さ，$\theta$ は近軸傾き角（小角近似），$n$ は媒質屈折率である．
+
+\subsection{伝搬（Translation）行列}
+媒質屈折率 $n$ の中を厚み $t$ だけ進むとき，
+\[
+\begin{bmatrix}y_2\\u_2\end{bmatrix}=
+\underbrace{\begin{bmatrix}1 & t/n\\0&1\end{bmatrix}}_{T(t,n)}
+\begin{bmatrix}y_1\\u_1\end{bmatrix}.
+\]
+本実装では \texttt{translation\_matrix(t,n)} が $T(t,n)$ を返す．
+
+\subsection{屈折（Refraction）行列}
+曲率半径 $R$ の球面で，左媒質 $n_1$ から右媒質 $n_2$ へ屈折するとき，
+曲率 $c=1/R$ として
+\[
+\begin{bmatrix}y_2\\u_2\end{bmatrix}=
+\underbrace{\begin{bmatrix}1&0\\-(n_2-n_1)c&1\end{bmatrix}}_{R(R,n_1,n_2)}
+\begin{bmatrix}y_1\\u_1\end{bmatrix}.
+\]
+本実装では $|R|>10^{12}$ を平面近似（$c=0$）として扱う．
+
+\subsection{光の進行方向と $z$ 座標}
+\begin{itemize}
+  \item 光は $+z$ 方向（左$\rightarrow$右）に進む．
+  \item 面頂点の絶対座標 $z(i)$ は，\texttt{reference\_surface} の頂点を $z=0$ として右方向に処方厚み $t$ を積算して定義する．
+  \item すなわち，$z(i+1)=z(i)+t_i$（$t_i$ は surface $i$ の \texttt{t}）．
+\end{itemize}
+
+\section{データモデル仕様}
+\subsection{\texttt{SurfaceSpec}（処方の1面）}
+\texttt{SurfaceSpec} は処方の1面を表す不変（frozen）データ構造で，以下の属性を持つ．
+\begin{itemize}
+  \item \texttt{num}：面番号（int）
+  \item \texttt{R}：曲率半径 $R$ [mm]（float）
+  \item \texttt{t}：次面頂点までの厚み $t$ [mm]（float）
+  \item \texttt{glass}：\textbf{その面直後の媒質名}（例：\texttt{"air"}, \texttt{"N-BK7"} 等）（str）
+  \item \texttt{stop}：絞り面フラグ（bool, default False）
+\end{itemize}
+重要：\texttt{glass} は「surface $i$ の後の媒質」を指す（opticspy互換）．従って surface $i$ の屈折では，
+\[
+n_{\text{left}}=n(\text{surface }i-1\text{ の glass}),\quad
+n_{\text{right}}=n(\text{surface }i\text{ の glass})
+\]
+として評価する．
+
+\subsection{\texttt{ReportConfig}（計算・描画設定）}
+\texttt{ReportConfig} はレポート生成と任意の描画を統合設定する．主要フィールド：
+\begin{itemize}
+  \item \texttt{prescription}：\texttt{SurfaceSpec} のリスト
+  \item \texttt{field\_angles\_deg}：視野角（YAN）[deg] のリスト（opticspy描画用）
+  \item \texttt{wavelengths\_nm}：波長[nm] のリスト（屈折率評価に使用）
+  \item \texttt{fno}：F/\#（opticspy描画用）
+  \item \texttt{start\_surface}：ABCD計算開始面番号（default 2）
+  \item \texttt{end\_surface}：ABCD計算終了面番号（default 8，通常は最後の屈折面）
+  \item \texttt{image\_surface}：処方像面として参照する面番号（任意）
+  \item \texttt{image\_z\_abs}：処方像面の絶対$z$上書き（任意，\texttt{image\_surface} より優先）
+  \item \texttt{reference\_surface}：$z=0$ とする基準面番号（default 2）
+  \item \texttt{draw\_layout}：レイアウト図保存を行うか（default True）
+  \item \texttt{out\_png}：出力PNGパス（default \texttt{"layout.png"}）
+  \item \texttt{opticspy\_root}：opticspy ルートディレクトリ上書き（任意）
+\end{itemize}
+
+\section{屈折率評価仕様}
+\subsection{\texttt{get\_refractive\_index\_nm(glass\_name, wavelengths\_nm)}}
+\begin{itemize}
+  \item \texttt{glass\_name} が \texttt{"air"}（大小無視）の場合：常に $n=1.0$ を返す．
+  \item それ以外：opticspy の \texttt{glass\_funcs.glass2indexlist(wavelengths, glass)} を呼び，
+        \textbf{返却リストの中央要素}（\texttt{mid=int(len(idx)/2)}）を採用して返す．
+\end{itemize}
+注意：\texttt{wavelengths\_nm} の並びは屈折率評価波長を決定する．例えば 3波長なら中央要素が採用される．
+
+\section{ABCD計算仕様}
+\subsection{\texttt{compute\_abcd\_from\_prescription(prescription, wavelengths\_nm, start\_surface, end\_surface)}}
+\subsubsection{入出力}
+\begin{itemize}
+  \item 入力：処方面列，波長リスト，開始面番号，終了面番号
+  \item 出力：終了面 \textbf{直後} までの $2\times2$ システム行列 $M$（numpy配列）
+\end{itemize}
+
+\subsubsection{アルゴリズム（逐次合成）}
+\begin{enumerate}
+  \item 面番号 $\rightarrow$ \texttt{SurfaceSpec} の辞書 $s$ を構成する．
+  \item $M \leftarrow I$（単位行列）で初期化する．
+  \item $i=\texttt{start\_surface},\dots,\texttt{end\_surface}$ について：
+    \begin{enumerate}
+      \item $i$ または $i-1$ が処方に存在しない場合，例外を送出する．
+      \item $n_{\text{left}}\leftarrow n(s[i-1].glass)$，$n_{\text{right}}\leftarrow n(s[i].glass)$ を評価する．
+      \item 屈折：$M \leftarrow R(R_i,n_{\text{left}},n_{\text{right}})\, M$
+      \item もし $i<\texttt{end\_surface}$ なら，並進：$M \leftarrow T(t_i,n_{\text{right}})\, M$
+    \end{enumerate}
+  \item $M$ を返す．
+\end{enumerate}
+
+\subsubsection{例外条件}
+\begin{itemize}
+  \item \texttt{start\_surface} の 1つ前の面（$i-1$）が処方に無い場合：
+        \texttt{ValueError("Surface i or i-1 not found ...")} を送出する．
+\end{itemize}
+
+\section{カーディナル量（air-to-air）算出仕様}
+\subsection{\texttt{cardinals\_air\_air(A,B,C,D)}}
+本関数は reduced-angle ABCD を空気$\rightarrow$空気系として解釈し，以下を返す：
+\[
+f'=-\frac{1}{C},\quad
+h=\frac{D-1}{C},\quad
+h'=\frac{A-1}{C},\quad
+\mathrm{BFL}=-\frac{A}{C},\quad
+\mathrm{FFL}=-\frac{D}{C}.
+\]
+返却は辞書 \texttt{\{fprime,h,hprime,BFL,FFL\}}．
+（注：本モジュールでは $h'$ を後側基準面から左向き距離として扱い，絶対座標化で $z_{H'}=z_{\mathrm{end}}-h'$ を用いる．）
+
+\section{$z$ 座標生成仕様}
+\subsection{\texttt{z\_vertices\_absolute(prescription, reference\_surface)}}
+\begin{itemize}
+  \item \texttt{reference\_surface} が処方に無い場合：\texttt{ValueError} を送出する．
+  \item $z(\texttt{reference\_surface})=0$ とし，面番号が連続する範囲で右方向へ厚み \texttt{t} を積算して $z$ 辞書を構築する．
+  \item 最大面番号まで走査するが，途中で面が欠けた場合はそこで停止する．
+\end{itemize}
+
+\section{レポート生成仕様}
+\subsection{\texttt{compute\_report(cfg)}}
+\subsubsection{生成する主要量}
+\begin{itemize}
+  \item $M$：end面直後までのABCD行列
+  \item \texttt{cardinals}：$f'$, $h$, $h'$, BFL, FFL
+  \item $z$：各面頂点の絶対座標辞書
+  \item $z_{\mathrm{end}}=z(\texttt{end\_surface})$
+  \item 主平面（絶対座標）：
+    \[
+    z(H)=h,\qquad z(H')=z_{\mathrm{end}}-h'
+    \]
+  \item ABCD由来の後側焦点面（絶対座標）：
+    \[
+    z_{\mathrm{img,ABCD}}=z_{\mathrm{end}}+\mathrm{BFL}
+    \]
+  \item 処方像面（任意）：
+    \begin{itemize}
+      \item \texttt{image\_surface} が指定されれば $z(\texttt{image\_surface})$
+      \item \texttt{image\_z\_abs} が指定されればそれで上書き（優先）
+    \end{itemize}
+  \item \texttt{M\_to\_img}（任意）：end面直後の行列に，end$\rightarrow$image面の並進を付加した行列
+\end{itemize}
+
+\subsubsection{\texttt{M\_to\_img} の定義}
+\texttt{image\_surface} が指定され，$z$ が計算できるとき，
+\[
+\Delta z = z(\texttt{image\_surface}) - z_{\mathrm{end}}
+\]
+とし，並進媒質屈折率として \textbf{end面後の媒質} $n_{\mathrm{after}}=n(s[\texttt{end\_surface}].glass)$ を用いる：
+\[
+M_{\mathrm{to\_img}} = T(\Delta z, n_{\mathrm{after}})\, M.
+\]
+
+\subsubsection{例外条件}
+\begin{itemize}
+  \item \texttt{end\_surface} の $z$ が計算できない場合：\texttt{ValueError}（面番号や基準面設定の不整合）
+  \item \texttt{image\_surface} が指定されたが $z$ 辞書に存在しない場合：\texttt{ValueError}
+\end{itemize}
+
+\subsection{\texttt{print\_report(rep)}}
+標準出力へ以下を整形表示する：
+\begin{itemize}
+  \item end面直後までの ABCD（A,B,C,D）
+  \item \texttt{M\_to\_img} がある場合は像面までの ABCD（A2,B2,C2,D2）
+  \item $f'=-1/C$（EFL）
+  \item 主平面位置 $z(H), z(H')$（基準面頂点を0とした絶対座標）
+  \item 処方像面 $z_{\mathrm{img,presc}}$（任意）と $z_{\mathrm{img,ABCD}}$ の差分
+  \item 注意文：差が0でない場合，処方像面がパラキシャル後焦点面と一致していない旨
+\end{itemize}
+
+\section{opticspy 連携（任意機能）}
+\subsection{\texttt{build\_opticspy\_lens(cfg)}}
+\begin{itemize}
+  \item \texttt{ensure\_opticspy\_importable(cfg.opticspy\_root)} を実行し opticspy を import 可能化する．
+  \item opticspy の \texttt{lens.Lens} を生成し，安全のため \texttt{surface\_list} を空にする（スナップショット差異への対策）．
+  \item \texttt{FNO}，\texttt{wavelength\_list}，視野角（YAN）を設定する．
+  \item 処方の各面について \texttt{add\_surface(number,radius,thickness,glass,STO,output=False)} を呼び登録する．
+  \item \texttt{refresh\_paraxial()} を呼び opticspy 内部の近軸更新を行う．
+\end{itemize}
+
+\subsection{\texttt{draw\_layout\_png(cfg)}}
+\begin{itemize}
+  \item matplotlib バックエンドを \texttt{Agg} に設定し，GUI無しで保存可能にする．
+  \item 出力先ディレクトリが無ければ作成する．
+  \item \texttt{trace.trace\_draw\_ray(L)} を実行してレイを生成する（返値は使用しない）．
+  \item \texttt{draw.draw\_system(L)} は内部で \texttt{plt.show()} を呼ぶ想定のため，
+        \texttt{plt.show} を一時的に差し替え，\texttt{savefig(out\_png)} を実行する関数に置換して PNG を保存する．
+  \item \texttt{draw.draw\_system(L)} 呼出後，必ず \texttt{plt.show} を元に戻す（\texttt{try/finally}）．
+  \item 成功時は出力PNGの絶対パスを返す．
+\end{itemize}
+
+\section{実行オーケストレーション}
+\subsection{\texttt{run\_report\_and\_optional\_plot(cfg)}}
+\begin{enumerate}
+  \item \texttt{compute\_report(cfg)} で辞書 \texttt{rep} を生成
+  \item \texttt{print\_report(rep)} で標準出力に表示
+  \item \texttt{cfg.draw\_layout} が真なら \texttt{draw\_layout\_png(cfg)} を実行し保存先を表示
+  \item \texttt{rep} を返す
+\end{enumerate}
+
+\section{組み込み例（example1）}
+\subsection{\texttt{example1\_config(out\_png)}}
+\begin{itemize}
+  \item サンプルの処方・視野角・波長・start/end・参照面等を埋め込んだ \texttt{ReportConfig} を生成して返す．
+  \item \texttt{main()} はこの設定を作り \texttt{run\_report\_and\_optional\_plot(cfg)} を呼ぶ．
+\end{itemize}
+
+\section{既知の注意点・設計上の含意}
+\begin{itemize}
+  \item 屈折率評価波長は \texttt{wavelengths\_nm} の中央要素で決まるため，意図する設計波長（例：d線）を中央に配置する必要がある．
+  \item \texttt{get\_refractive\_index\_nm()} は \texttt{ensure\_opticspy\_importable()} を引数無しで呼ぶため，
+        リポジトリ外から利用する場合は \texttt{OPTICSPY\_ROOT} の設定が推奨される
+        （描画系は \texttt{cfg.opticspy\_root} を明示的に渡す一方，屈折率取得側は環境変数/デフォルトに依存する）．
+  \item $z$ 計算は面番号連続を仮定し，欠番があるとそこで停止するため，処方番号設計に注意が必要．
+\end{itemize}
+
+
+\section{ABCD行列の計算方法（本モジュールの実装仕様に即した詳細）}
+
+\subsection{レイベクトルの定義（reduced-angle）}
+本モジュールは近軸（paraxial）行列計算において，opticspy の first\_order 系と同じ
+\textbf{reduced-angle} 規約を採用する．レイベクトルは
+\[
+\mathbf{r}=
+\begin{bmatrix}
+y\\
+u
+\end{bmatrix},
+\qquad
+u = n\,\theta
+\]
+である（$y$：光軸からの高さ，$\theta$：小角近似の傾き角，$n$：その区間の屈折率）．
+
+この規約を使うと，
+\begin{itemize}
+  \item 並進（厚み）行列の $(1,2)$ 要素が $t/n$ になる
+  \item 屈折行列が $n$ の比を明示的に含まず簡潔になる
+\end{itemize}
+という利点がある．
+
+\subsection{面データの意味（SurfaceSpecの取り決め）}
+surface $i$ は以下を持つ：
+\begin{itemize}
+  \item 曲率半径：$R_i$
+  \item 次面頂点までの厚み：$t_i$
+  \item \textbf{面$i$の直後の媒質名}：\texttt{glass\_i}
+\end{itemize}
+ここが重要で，屈折の左右の屈折率は
+\[
+n_{\text{left}} = n(\texttt{glass}_{i-1}),\qquad
+n_{\text{right}} = n(\texttt{glass}_{i})
+\]
+として決まる（「面$i-1$の後の媒質」が「面$i$の前の媒質」になるため）．
+
+\subsection{並進行列 $T(t,n)$ の定義（実装そのまま）}
+媒質屈折率 $n$ の中を厚み $t$ だけ進む（頂点間距離 $t$）とき，
+\[
+\mathbf{r}_2 = T(t,n)\,\mathbf{r}_1,\qquad
+T(t,n)=
+\begin{bmatrix}
+1 & t/n\\
+0 & 1
+\end{bmatrix}.
+\]
+実装：\texttt{translation\_matrix(t,n)} がこれを返す．
+
+\subsection{屈折行列 $R(R_i,n_1,n_2)$ の定義（実装そのまま）}
+曲率半径 $R$ の球面（曲率 $c=1/R$）で $n_1\rightarrow n_2$ に屈折するとき，
+\[
+\mathbf{r}_2 = \mathcal{R}(R,n_1,n_2)\,\mathbf{r}_1,\qquad
+\mathcal{R}(R,n_1,n_2)=
+\begin{bmatrix}
+1 & 0\\
+-(n_2-n_1)\,c & 1
+\end{bmatrix}.
+\]
+実装：\texttt{refraction\_matrix(R,n1,n2)}．
+なお $|R|>10^{12}$ は平面として $c=0$ を採用する（数値安定化のため）．
+
+\subsection{システム行列 $M$ の合成順序（start$\to$end面）}
+\texttt{compute\_abcd\_from\_prescription()} は，
+\textbf{start面の直前（start面頂点，前側媒質）}のレイベクトルを入力として，
+\textbf{end面の直後}のレイベクトルを出力する $2\times 2$ 行列 $M$ を計算する．
+
+初期値 $M=I$ として，$i=\texttt{start\_surface},\dots,\texttt{end\_surface}$ について
+\[
+M \leftarrow \mathcal{R}(R_i,n_{\text{left}},n_{\text{right}})\,M
+\]
+を行い，さらに $i<\texttt{end\_surface}$ のとき，面$i$直後の媒質 $n_{\text{right}}$ 中で
+厚み $t_i$ を進める並進を
+\[
+M \leftarrow T(t_i,n_{\text{right}})\,M
+\]
+として左から掛けていく．
+
+\paragraph{ここでの「厚み $t_i$」の意味}
+\texttt{SurfaceSpec(i,...,t\_i, glass\_i)} の $t_i$ は
+「面$i$の頂点から面$i+1$の頂点までの距離」であり，
+並進は「面$i$で屈折した後，媒質 \texttt{glass\_i} の中を $t_i$ 進む」ことを表す．
+
+\subsection{波長と屈折率の取り方（test1\_1.py の nd=587.6 の理由）}
+\texttt{get\_refractive\_index\_nm(glass, wavelengths)} は，
+\texttt{wavelengths\_nm} に対して opticspy のガラス表から屈折率リストを作り，
+\textbf{中央要素}を採用する：
+\[
+\texttt{mid}=\left\lfloor \frac{N}{2}\right\rfloor,\qquad n = n(\lambda_{\texttt{mid}}).
+\]
+test1\_1.py は
+\[
+[\;656.3,\;587.6,\;486.1\;]\ \mathrm{nm}
+\]
+なので中央は $587.6\,\mathrm{nm}$ になり，表示文の「nd=587.6nm」に一致する．
+
+\section{ABCD行列からの $f',H,H',\mathrm{BFL}$ の計算と意味}
+
+\subsection{ABCDの定義}
+合成後の行列を
+\[
+M=
+\begin{bmatrix}
+A & B\\
+C & D
+\end{bmatrix}
+\]
+とすると，入出力の関係は
+\[
+\begin{bmatrix}
+y_{\text{out}}\\ u_{\text{out}}
+\end{bmatrix}
+=
+\begin{bmatrix}
+A & B\\
+C & D
+\end{bmatrix}
+\begin{bmatrix}
+y_{\text{in}}\\ u_{\text{in}}
+\end{bmatrix}.
+\]
+ここで in は「start面直前」，out は「end面直後」である．
+（本モジュールは空気$\rightarrow$空気の系としてカーディナル量を評価する想定で作られている．）
+
+\subsection{有効焦点距離（EFL） $f'$}
+空気$\rightarrow$空気の reduced-angle ABCD では，
+系の光学パワーは $-C$ に対応し，
+\[
+f' = -\frac{1}{C}
+\]
+が成立する．
+\begin{itemize}
+  \item $C<0$ のとき $f'>0$（通常の集光系）
+  \item $C>0$ のとき $f'<0$（発散系）
+\end{itemize}
+
+\subsection{主平面位置 $H, H'$（cardinals\_air\_air の式）}
+本モジュールは
+\[
+h = \frac{D-1}{C},\qquad
+h' = \frac{A-1}{C}
+\]
+を計算する．ここで
+\begin{itemize}
+  \item $h$：入力基準面（start面頂点）から\textbf{右向き（+z）}に測った前主平面 $H$ の位置
+  \item $h'$：出力基準面（end面直後）から\textbf{左向き（-z）}に測った後主平面 $H'$ の位置
+\end{itemize}
+という符号解釈で使っている．そのため絶対座標化は
+\[
+z(H)=h,
+\qquad
+z(H')=z_{\text{end}}-h'
+\]
+となる（実装：\texttt{zH=card["h"]}, \texttt{zHp=z\_end-card["hprime"]}）．
+
+\paragraph{注意（test1\_1.py の表示文とのズレ）}
+test1\_1.py は \texttt{rep["zHp"]} に対して「(from surface 8 vertex)」と印字しているが，
+\texttt{rep["zHp"]} 自体は \textbf{surface2頂点を0とする絶対座標}である．
+surface8頂点からの相対距離で表したい場合は
+\[
+z(H')-z_8 = -h'
+\]
+を用いるのが正しい．
+
+\subsection{後側焦点距離（BFL）と後側焦点面位置}
+本モジュールは
+\[
+\mathrm{BFL}=-\frac{A}{C}
+\]
+を計算し，後側焦点面（パラキシャル像点の位置）を
+\[
+z_{\text{img,ABCD}} = z_{\text{end}} + \mathrm{BFL}
+\]
+としてレポートする（実装：\texttt{z\_img\_abcd=z\_end+card["BFL"]}）．
+
+\begin{itemize}
+  \item $\mathrm{BFL}>0$ なら end面より右側に焦点（通常の実像）
+  \item $\mathrm{BFL}<0$ なら end面より左側に焦点（仮想像側）
+\end{itemize}
+
+\section{$z$ 座標（面頂点座標）の計算方法と意味}
+
+\subsection{基準面の取り方}
+\texttt{z\_vertices\_absolute(prescription, reference\_surface)} は
+\[
+z(\texttt{reference\_surface})=0
+\]
+と置き，その面から右に向かって厚みを積算して各面頂点の座標を作る：
+\[
+z(i+1)=z(i)+t_i.
+\]
+test1\_1.py では \texttt{reference\_surface=2} なので
+\[
+z_2=0,\quad
+z_3=t_2,\quad
+z_4=t_2+t_3,\ \dots
+\]
+となる．
+
+\subsection{test1\_1.py に出てくる $z_8, z_9$ の意味}
+\begin{itemize}
+  \item \texttt{rep["z"][8]} は surface2 頂点を0とした surface8 頂点の位置 $z_8$
+  \item \texttt{rep["z\_img\_prescribed"]} は \texttt{image\_surface=9} により $z_9$（処方上の像面頂点位置）
+  \item \texttt{rep["z\_img\_abcd"]} は $z_8+\mathrm{BFL}$（ABCDが示すパラキシャル後焦点面位置）
+\end{itemize}
+
+\section{test1\_1.py の出力がどう計算され，何を意味するか}
+
+\subsection{A,B,C,D の出力}
+\texttt{A,B,C,D} は「surface2直前」$\rightarrow$「surface8直後」への近軸写像であり，
+任意の入射レイ $(y_{\text{in}},u_{\text{in}})$ に対して出射レイが
+\[
+y_{\text{out}} = A\,y_{\text{in}} + B\,u_{\text{in}},\qquad
+u_{\text{out}} = C\,y_{\text{in}} + D\,u_{\text{in}}
+\]
+で決まる．
+\begin{itemize}
+  \item $B$ は主に「伝搬距離（厚み）」の寄与を反映しやすい
+  \item $C$ は主に「光学パワー（屈折の強さ）」を反映し，$f'=-1/C$ を決める
+\end{itemize}
+
+\subsection{$f'$ の出力}
+\texttt{card['fprime']} は
+\[
+f'=-\frac{1}{C}
+\]
+として計算された有効焦点距離（EFL）である．
+「薄レンズ近似の焦点距離」ではなく，厚肉系でも成立する「等価薄レンズとしての焦点距離」を意味する．
+
+\subsection{$H$（zH）の出力}
+\texttt{rep['zH']} は
+\[
+z(H)=h=\frac{D-1}{C}
+\]
+であり，「surface2頂点（基準面）から見た前主平面の位置」を mm で表す．
+主平面は「この位置に等価薄レンズがあるとみなすと，全系の近軸結像が表せる面」である．
+
+\subsection{$H'$（zHp）の出力}
+\texttt{rep['zHp']} は
+\[
+z(H')=z_8-\frac{A-1}{C}
+\]
+であり，「surface2頂点を0とした座標系における後主平面の絶対位置」である．
+（surface8頂点からの相対なら $z(H')-z_8=-h'$ で読む．）
+
+\subsection{BFL の出力と像面チェックの意味}
+\texttt{card['BFL']} は
+\[
+\mathrm{BFL}=-\frac{A}{C}
+\]
+であり，「surface8直後の基準面から後側焦点までの距離」を意味する．
+したがって ABCD が予言するパラキシャル焦点位置は
+\[
+z_8+\mathrm{BFL}
+\]
+となる．
+
+test1\_1.py の最後の差分は
+\[
+\Delta z
+=
+z_9 - (z_8+\mathrm{BFL})
+\]
+を出しており，
+\begin{itemize}
+  \item $\Delta z>0$：処方像面が\textbf{焦点より右（遠い）}にある（像面が後ろに過ぎる）
+  \item $\Delta z<0$：処方像面が\textbf{焦点より左（手前）}にある（像面が前に過ぎる）
+  \item $\Delta z\simeq 0$：処方像面が\textbf{パラキシャル後焦点面に一致}
+\end{itemize}
+を意味する．
+ここで一致とは「近軸（一次）結像条件で一致」という意味であり，収差を含む最良像面（ベストフォーカス）とは異なる場合がある．
+
+\section{補足：STOP面の扱い}
+\texttt{SurfaceSpec.stop=True}（STOP）は opticspy のレイトレース／描画で絞りとして使われるが，
+本モジュールの AB​CD 行列計算（一次結像）には \textbf{直接は影響しない}．
+一次行列は幾何（曲率・厚み・屈折率）で決まるためである．
+
+\section{補足：像面までの行列 $M_{\mathrm{to\_img}}$}
+\texttt{image\_surface} が指定されると，end面直後から像面頂点までの並進を追加した
+\[
+M_{\mathrm{to\_img}} = T(\Delta z, n_{\text{after end}})\,M
+\]
+も計算され得る（\texttt{compute\_report} 内）．
+ここで $n_{\text{after end}}$ は「end面の直後の媒質」（\texttt{glass\_end}）の屈折率であり，
+reduced-angle 規約に整合するよう $t/n$ を用いる．
+この行列は「像面上での $A,B,C,D$ を見たい」場合の追加情報である．
+
+
+%-------------------------
+\end{document}

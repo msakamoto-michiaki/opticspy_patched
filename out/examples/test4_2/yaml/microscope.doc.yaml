@@ -1,0 +1,214 @@
+prescription:
+- num: 1
+  R: 10000000.0
+  t: 150.0894321271246
+  glass: air
+  stop: false
+- num: 2
+  R: 10000000.0
+  t: 6.37715
+  glass: air
+  stop: false
+- num: 3
+  R: -4.89305423085
+  t: 1.23505155819
+  glass: E-ADF10_hoya
+  stop: false
+- num: 4
+  R: 331.759003589
+  t: 3.77381460713
+  glass: E-LAF7_hoya
+  stop: false
+- num: 5
+  R: -7.999295758640001
+  t: 12.1150406847
+  glass: air
+  stop: false
+- num: 6
+  R: 10000000.0
+  t: 4.43944811801
+  glass: air
+  stop: true
+- num: 7
+  R: 17.8114619056
+  t: 2.60245961289
+  glass: FCD1_hoya
+  stop: false
+- num: 8
+  R: -6.811396202339999
+  t: 1.00094600496
+  glass: FDS30_hoya
+  stop: false
+- num: 9
+  R: 65.8688649511
+  t: 0.140215163505
+  glass: air
+  stop: false
+- num: 10
+  R: 11.4744810205
+  t: 3.94008745589
+  glass: FCD1_hoya
+  stop: false
+- num: 11
+  R: -6.1053570162
+  t: 1.47039795357
+  glass: BAC4_hoya
+  stop: false
+- num: 12
+  R: -14.4049365763
+  t: 0.100094600496
+  glass: air
+  stop: false
+- num: 13
+  R: 7.12077951297
+  t: 2.20208121091
+  glass: FCD1_hoya
+  stop: false
+- num: 14
+  R: 14.3693657679
+  t: 0.100094600496
+  glass: air
+  stop: false
+- num: 15
+  R: 4.01701966949
+  t: 4.660603133840001
+  glass: FD110_hoya
+  stop: false
+- num: 16
+  R: 2.43163700957
+  t: 0.84
+  glass: air
+  stop: false
+- num: 17
+  R: 10000000.0
+  t: 0.17
+  glass: N-K5_schott
+  stop: false
+- num: 18
+  R: 10000000.0
+  t: -0.0003711647401700699
+  glass: air
+  stop: false
+- num: 19
+  R: 10000000.0
+  t: 0.000371137249601
+  glass: air
+  stop: false
+conditions:
+  title: 40X POWER, 0.70 NA  PLAN-ACHROMAT
+  dim: M
+  wavelengths:
+  - 656.3
+  - 546.1
+  - 486.1
+  ref: 3
+  wtw:
+  - 14.0
+  - 71.0
+  - 90.0
+  - 26.0
+  - 2.0
+  wtf:
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  epd: null
+  xan_deg: []
+  yan_deg:
+  - 0.0
+  - 2.0
+  - 3.8
+  fno: null
+  na: null
+  nao: 0.0175
+  vux:
+  - 9.99999999806711e-07
+  - 0.002811668945310042
+  - 0.006323716308589966
+  - 0.01123552050779997
+  vlx:
+  - 9.99999999806711e-07
+  - 0.002811668945310042
+  - 0.006323716308589966
+  - 0.01123552050779997
+  vuy:
+  - 9.99999999806711e-07
+  - 0.03497056689449996
+  - 0.06311898095699997
+  - 0.128336571289
+  vly:
+  - 9.99999999806711e-07
+  - 0.01937303271479995
+  - 0.05324196679689996
+  - 0.09204354150390004
+  ca: false
+  pim: true
+  go: true
+  ini: '''ORA'''
+  global_preamble:
+  - RDM
+  - 'LEN       "VERSION: 10.7 SR1       LENS VERSION: 80       Creation Date: 07-Mar-2016"'
+  global_between:
+    18:
+    - PIM
+    19:
+    - GO
+  global_postamble: []
+  surface_cmds:
+    1:
+    - RED 0.025
+    3:
+    - CIR 3.81
+    - CIR EDG 5.08
+    4:
+    - CIR 5.08
+    - CIR EDG 5.08
+    5:
+    - THC 4
+    - CIR 4.45
+    - CIR EDG 5.08
+    6:
+    - THC -4
+    - STO
+    7:
+    - CIR 4.15
+    - CIR EDG 4.45
+    8:
+    - CIR EDG 4.15
+    9:
+    - CIR 4.33
+    - CIR EDG 4.76
+    10:
+    - CIR EDG 4.76
+    11:
+    - CIR EDG 4.76
+    12:
+    - CIR 4.125
+    - CIR EDG 4.76
+    13:
+    - CIR EDG 4.572
+    14:
+    - CIR 3.937
+    - CIR EDG 4.572
+    15:
+    - CIR EDG 3.683
+    16:
+    - THC 0
+    - CIR 1.27
+    17:
+    - CIR 2.54
+    - CIR EDG 2.54
+    18:
+    - CIR 2.54
+    - CIR EDG 2.54
+    19:
+    - THC 0
+  plane_surfaces:
+  - 1
+  - 2
+  - 6
+  - 17
+  - 18
+  - 19
+  extras: {}

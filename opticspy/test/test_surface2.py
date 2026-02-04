@@ -1,3 +1,5 @@
+from opticspy._plot_output import save_figure
+
 import numpy as __np__
 from numpy import sqrt as __sqrt__
 from numpy import cos as __cos__
@@ -36,7 +38,7 @@ def testsurface2():
 	fig = __plt__.figure(figsize=(9, 6), dpi=80)
 	__plt__.imshow(-Ixy, extent=[-PR,PR,-PR,PR])
 	__plt__.set_cmap('Greys')
-	__plt__.show()
+	save_figure(__plt__, 'opticspy_test_test_surface2__testsurface2.png', outdir='out')
 
 	I1 = Ia + Ib + 2 * __np__.sqrt(Ia*Ib) * __np__.cos(ph)
 	I2 = Ia + Ib + 2 * __np__.sqrt(Ia*Ib) * __np__.cos(ph+45.0/180*__np__.pi)
@@ -50,7 +52,7 @@ def testsurface2():
 		fig = __plt__.figure(figsize=(9, 6), dpi=80)
 		__plt__.imshow(-Ilist[i], extent=[-PR,PR,-PR,PR])
 		__plt__.set_cmap('Greys')
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_test_test_surface2__testsurface2_2.png', outdir='out')
 
 	ph1 = __np__.arctan((I4-I2)/(I1-I3))
 
@@ -58,7 +60,7 @@ def testsurface2():
 	fig = __plt__.figure(figsize=(9, 6), dpi=80)
 	__plt__.imshow(-Ixy, extent=[-PR,PR,-PR,PR])
 	__plt__.set_cmap('Greys')
-	__plt__.show()
+	save_figure(__plt__, 'opticspy_test_test_surface2__testsurface2_3.png', outdir='out')
 
 	OPD = ph*PR/2
 	Z = OPD
@@ -67,7 +69,7 @@ def testsurface2():
 	#surf = ax.plot_surface(x, y, Z, rstride=1, cstride=1, cmap=__cm__.RdYlGn,linewidth=0, antialiased=False, alpha = 0.6)
 	im = __plt__.pcolormesh(x, y, Z, cmap=__cm__.RdYlGn)
 	__plt__.colorbar()
-	__plt__.show()
+	save_figure(__plt__, 'opticspy_test_test_surface2__testsurface2_4.png', outdir='out')
 
 	for i in range(len(Z)):
 		for j in range(len(Z)):
@@ -76,6 +78,6 @@ def testsurface2():
 	fig = __plt__.figure(figsize=(6, 6), dpi=80)
 	im = __plt__.pcolormesh(x, y, Z, cmap=__cm__.RdYlGn)
 	__plt__.colorbar()
-	__plt__.show()
+	save_figure(__plt__, 'opticspy_test_test_surface2__testsurface2_5.png', outdir='out')
 
 	return Z

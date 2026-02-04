@@ -1,4 +1,7 @@
 from __future__ import division as __division__
+
+from opticspy._plot_output import save_figure
+
 import numpy as __np__
 import matplotlib.pyplot as __plt__
 
@@ -105,7 +108,7 @@ def grid_generator(n,grid_type,output = False):
         ax.set_xlim([-1,1])
         ax.set_ylim([-1,1])
         ax.set_title('Entrance Pupil Sampling')
-        __plt__.show()
+        save_figure(__plt__, 'opticspy_ray_tracing_field__grid_generator.png', outdir='out')
         return 0
     else:
         return grid_list

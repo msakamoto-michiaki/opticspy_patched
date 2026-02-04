@@ -7,6 +7,8 @@ Various transforms used for by the 3D code
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+from opticspy._plot_output import save_figure
+
 import six
 from six.moves import zip
 
@@ -90,7 +92,7 @@ def test_lines_dists():
 
     pylab.xlim(-200, 200)
     pylab.ylim(-200, 200)
-    pylab.show()
+    save_figure(pylab, 'opticspy_mplot3d_proj3d__test_lines_dists.png', outdir='out')
 
 def mod(v):
     """3d vector length"""
@@ -265,7 +267,7 @@ def test_proj():
     pylab.xlim(-0.2, 0.2)
     pylab.ylim(-0.2, 0.2)
 
-    pylab.show()
+    save_figure(pylab, 'opticspy_mplot3d_proj3d__test_proj.png', outdir='out')
 
 def rot_x(V, alpha):
     cosa, sina = np.cos(alpha), np.sin(alpha)

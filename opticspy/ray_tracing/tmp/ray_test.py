@@ -1,4 +1,7 @@
 from __future__ import division as __division__
+
+from opticspy._plot_output import save_figure
+
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -54,7 +57,7 @@ ax.scatter(x, z, y)
 ax.set_xlim3d(-6, 6)
 ax.set_ylim3d(-6, 6)
 ax.set_zlim3d(-6, 6)
-plt.show()
+save_figure(plt, 'opticspy_ray_tracing_tmp_ray_test__module.png', outdir='out')
 
 npp = 2
 n = 1
@@ -93,7 +96,7 @@ for p,q in zip(xyz_list,KLM1):
 #print xyz_list2
 fig = plt.figure()
 plt.plot(x2,y2,'b*')
-plt.show()
+save_figure(plt, 'opticspy_ray_tracing_tmp_ray_test__module_2.png', outdir='out')
 
 rms = cal_tools.rms()
 print 'rms = ',rms

@@ -1,4 +1,7 @@
 from __future__ import division as __division__
+
+from opticspy._plot_output import save_figure
+
 import numpy as __np__
 import matplotlib.pyplot as __plt__
 from mpl_toolkits.mplot3d import Axes3D
@@ -49,7 +52,7 @@ ax.scatter(x, z, y)
 ax.set_xlim3d(-6, 6)
 ax.set_ylim3d(-6, 6)
 ax.set_zlim3d(-6, 6)
-__plt__.show()
+save_figure(__plt__, 'opticspy_ray_tracing_tests_test1_spotdiagram__module.png', outdir='out')
 
 
 for pos,klm in zip(Pos_new_list,KLM_new_list):
@@ -69,7 +72,7 @@ for i in Pos_new_list1:
 
 fig = __plt__.figure()
 __plt__.plot(x2,y2,'b*')
-__plt__.show()
+save_figure(__plt__, 'opticspy_ray_tracing_tests_test1_spotdiagram__module_2.png', outdir='out')
 
 
 

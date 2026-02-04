@@ -1,0 +1,125 @@
+prescription:
+- num: 1
+  R: 10000000.0
+  t: 989771722685.0
+  glass: air
+  stop: false
+- num: 2
+  R: 70.6676940372
+  t: 21.6760007268
+  glass: N-BAK2_schott
+  stop: false
+- num: 3
+  R: -67.6027404334
+  t: 3.48399646385
+  glass: F2_schott
+  stop: false
+- num: 4
+  R: 926.752549331
+  t: 76.5093541636
+  glass: air
+  stop: true
+- num: 5
+  R: 34.3945415674
+  t: 17.3605960159
+  glass: N-BK7_schott
+  stop: false
+- num: 6
+  R: -52.8526578034
+  t: 3.48399646385
+  glass: N-F2_schott
+  stop: false
+- num: 7
+  R: 233.106858852
+  t: 19.3995257646
+  glass: air
+  stop: false
+- num: 8
+  R: -34.3945415674
+  t: 1.96964572814
+  glass: N-F2_schott
+  stop: false
+- num: 9
+  R: -244.267453772
+  t: 4.0
+  glass: air
+  stop: false
+- num: 10
+  R: 10000000.0
+  t: 0.0
+  glass: air
+  stop: false
+conditions:
+  title: Petzval lens with field flattener     U.S. Patent 2,076,190
+  dim: M
+  wavelengths:
+  - 656.3
+  - 587.6
+  - 486.1
+  ref: 2
+  wtw:
+  - 1.0
+  - 1.0
+  - 1.0
+  wtf: []
+  epd: 50.0
+  xan_deg:
+  - 0.0
+  - 0.0
+  - 0.0
+  yan_deg:
+  - 0.0
+  - 5.0
+  - 7.0
+  fno: null
+  na: null
+  nao: null
+  vux: []
+  vlx: []
+  vuy:
+  - 0.0
+  - 0.0
+  - 0.0
+  vly:
+  - 0.0
+  - 0.0
+  - 0.0
+  ca: true
+  pim: true
+  go: true
+  ini: '''ORA'''
+  global_preamble:
+  - RDM
+  - LEN
+  global_between:
+    9:
+    - PIM
+    10:
+    - GO
+  global_postamble: []
+  surface_cmds:
+    2:
+    - CCY 0
+    3:
+    - CCY 0
+    4:
+    - CCY 0
+    - THC 0
+    - STO
+    5:
+    - CCY 0
+    6:
+    - CCY 0
+    7:
+    - CCY 0
+    - THC 0
+    8:
+    - CCY 0
+    9:
+    - CCY 0
+    10:
+    - THC 0
+  plane_surfaces:
+  - 1
+  - 10
+  extras: {}

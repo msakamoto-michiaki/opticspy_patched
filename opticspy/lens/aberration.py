@@ -1,3 +1,5 @@
+from opticspy._plot_output import save_figure
+
 import numpy as __np__
 import matplotlib.pyplot as __plt__
 def third(s1,s2,s3,s4,s5):
@@ -49,7 +51,7 @@ def third(s1,s2,s3,s4,s5):
 		count = count + 1
 
 	fig.set_tight_layout(True)
-	__plt__.show()
+	save_figure(__plt__, 'opticspy_lens_aberration__third.png', outdir='out')
 
 def fieldcurve(sigma3 = 0.05, sigma4 = -0.05, FNO = 10, H = 20):
 	"""
@@ -73,5 +75,5 @@ def fieldcurve(sigma3 = 0.05, sigma4 = -0.05, FNO = 10, H = 20):
 	__plt__.title(r'$\sigma3 = $'+str(round(sigma3,4))+' '+r'$\sigma4 = $'+str(sigma4),fontsize=18)
 	#__plt__.axis([-16, 5, 0, H])
 	__plt__.grid(b=True, which='both', color='0.65',linestyle='--')
-	__plt__.show()
+	save_figure(__plt__, 'opticspy_lens_aberration__fieldcurve.png', outdir='out')
 	return 0

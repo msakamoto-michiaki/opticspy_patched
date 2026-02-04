@@ -1,3 +1,5 @@
+from opticspy._plot_output import save_figure
+
 import numpy as __np__
 from numpy import sqrt as __sqrt__
 from numpy import cos as __cos__
@@ -15,7 +17,7 @@ def __apershow__(obj):
 	obj = -abs(obj)
 	__plt__.imshow(obj)
 	__plt__.set_cmap('Greys')
-	__plt__.show()
+	save_figure(__plt__, 'opticspy_test_PSF____apershow__.png', outdir='out')
 
 l1 = 100
 #Generate test surface matrix from a detector
@@ -40,13 +42,13 @@ cset = ax.contourf(X, Y, Z, zdir='z', offset=-v*5, cmap=__cm__.RdYlGn)
 ax.zaxis.set_major_locator(__LinearLocator__(10))
 ax.zaxis.set_major_formatter(__FormatStrFormatter__('%.02f'))
 fig.colorbar(surf, shrink=1, aspect=30)
-__plt__.show()
+save_figure(__plt__, 'opticspy_test_PSF__module.png', outdir='out')
 
 d = 400
 A = __np__.zeros([d,d])
 A[d/2-49:d/2+51,d/2-49:d/2+51] = Z
 __plt__.imshow(A)
-__plt__.show()
+save_figure(__plt__, 'opticspy_test_PSF__module_2.png', outdir='out')
 
 abbe = __np__.exp(1j*2*__np__.pi*A)
 for i in range(len(abbe)):
@@ -57,4 +59,4 @@ fig = __plt__.figure(2)
 AP = abs(__fftshift__(__fft2__(__fftshift__(abbe))))**2
 AP = AP/AP.max()
 __plt__.imshow(AP)
-__plt__.show()
+save_figure(__plt__, 'opticspy_test_PSF__module_3.png', outdir='out')

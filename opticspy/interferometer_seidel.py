@@ -1,3 +1,5 @@
+from opticspy._plot_output import save_figure
+
 import numpy as __np__
 import matplotlib.pyplot as __plt__
 from . import tools as __tools__
@@ -76,7 +78,7 @@ def twyman_green(A=0, B=0, C=0, D=0, E=0, F=0, G=0, lambda_1 = 632, PR = 1):
 	__plt__.xlabel(label,fontsize=16)
 	__plt__.title('Twyman Green Interferogram',fontsize=16)
 	fig.set_tight_layout(True)
-	__plt__.show()
+	save_figure(__plt__, 'opticspy_interferometer_seidel__module.png', outdir='out')
 
 ################################################################
 ################################################################
@@ -177,7 +179,7 @@ def lateral_shear(A=0, B=0, C=0, D=0, E=0, S=0.1, lambda_1 = 632, PR = 1):
 	__plt__.xlabel(label,fontsize=16)
 	__plt__.title('Lateral Shear Interferogram',fontsize=16)
 	fig.set_tight_layout(True)
-	__plt__.show()
+	save_figure(__plt__, 'opticspy_interferometer_seidel__module_2.png', outdir='out')
 
 
 

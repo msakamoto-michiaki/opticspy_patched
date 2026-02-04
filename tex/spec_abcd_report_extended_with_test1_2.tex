@@ -1,0 +1,432 @@
+\begin{document}
+
+\section*{`abcd\_report.py` 拡張版仕様書（Plan B：倍率 $\beta/\alpha/\gamma$・Newton公式・有限共役モード）}
+
+\subsection*{目的と位置づけ}
+本仕様書は、`optics/abcd_report.py` に実装された「ABCD直接計算に基づく一次（パラキシャル）評価」を、従来のカーディナル点（EFL, 主平面, BFL 等）に加えて、
+\begin{itemize}
+  \item 物体距離が有限な \textbf{有限共役}の取り扱い
+  \item 物体面から像面までを含む \textbf{全系行列（object$\to$image）}の導入
+  \item \textbf{倍率（横倍率 $\beta$、縦倍率 $\alpha$、角倍率 $\gamma$）}の定義・計算
+  \item \textbf{Newton公式}（$x x' = f^2$）による定義・実装整合性チェック
+\end{itemize}
+まで拡張した仕様を、記号・座標系・符号規約とともに明確化するものである。
+
+本仕様で扱う量はすべてパラキシャル（一次）であり、収差や実効開口制限による非線形効果は含まない。一方で、一次特性は光学系の幾何学的理解の骨格であり、とくに \textbf{結像条件（$B_s\simeq 0$）}と \textbf{Newton公式の一致}は、実装の定義・符号・基準面の整合性を強力に保証する。
+
+\subsection*{対象範囲}
+本仕様は主に以下を対象とする。
+\begin{itemize}
+  \item `ReportConfig` の拡張（有限共役・像面モード）
+  \item レンズ部分系行列 $M_{\mathrm{lens}}$ の算出（既存枠組み）
+  \item 物体側・像側の外部伝搬行列の導入
+  \item 全系行列 $M_{\mathrm{sys}}$ の構成とその要素 $(A_s,B_s,C_s,D_s)$ の意味
+  \item $\beta,\alpha,\gamma$ の定義と出力値の解釈
+  \item Newton距離 $x,x'$ の定義と $x x' = f^2$ のチェック
+\end{itemize}
+
+\section{基礎定義}
+
+\subsection{座標系（絶対 $z$ 座標）}
+光は物体側（左）から像側（右）へ進むものとし、進行方向を $+z$ とする。計算の基準面として `reference_surface` の頂点を絶対座標の原点にとり、
+\[
+z_{\mathrm{ref}} = 0
+\]
+と定義する。各面頂点の絶対位置 $z_k$ は、処方（面間厚み）を累積して決定する。以後、物体面位置と像面位置は
+\[
+z_o,\; z_i \quad (\mathrm{mm})
+\]
+として \textbf{絶対座標で表す}。
+
+\paragraph{符号規約の直感}
+通常の撮像で物体は入射側に存在するため $z_o < 0$ が典型である。像面は系内部または像側に配置されるため、多くの場合 $z_i > 0$ となる。
+
+\subsection{reduced-angle 形式のレイベクトル}
+状態ベクトルは
+\[
+\mathbf{r}=\begin{pmatrix}y\\u\end{pmatrix},
+\qquad u = n\,\theta
+\]
+\begin{itemize}
+  \item $y$：光軸からの高さ（mm）
+  \item $\theta$：光軸に対する傾き角（rad, 近軸）
+  \item $n$：その区間の屈折率
+  \item $u$：reduced-angle（屈折率を掛けた角度成分）
+\end{itemize}
+空気（$n\simeq1$）では $u\simeq \theta$ となるが、媒質が変わる場合に角度成分の扱いが変わるため、本仕様は $u=n\theta$ を厳密に採用する。
+
+\subsection{ABCD 行列の定義}
+ある光学系（または光学区間）がレイベクトルを
+\[
+\begin{pmatrix}y'\\u'\end{pmatrix}
+=
+\begin{pmatrix}A&B\\C&D\end{pmatrix}
+\begin{pmatrix}y\\u\end{pmatrix}
+\]
+で写すとき、これを reduced-angle 形式の ABCD 行列と呼ぶ。$A,B,C,D$ は無次元/長さ/逆長さなどの次元を持つ（$B$ は長さ次元、$C$ は逆長さ次元）。
+
+\section{基本行列}
+
+\subsection{伝搬（厚み $t$、媒質 $n$）}
+媒質 $n$ の一様空間を厚み $t$ だけ進む伝搬は
+\[
+T(t,n)=\begin{pmatrix}1 & t/n\\0&1\end{pmatrix}
+\]
+で与えられる。reduced-angle のため、角成分は $u=n\theta$ であり、幾何伝搬が $t$ ではなく \textbf{$t/n$} によって決まる点が重要である。これにより、同じ物理厚みでも屈折率が大きいと reduced距離（光学距離）としては短くなる。
+
+\subsection{屈折（曲率半径 $R$、入射側 $n_1$、出射側 $n_2$）}
+球面境界での屈折は、近軸では
+\[
+R(R,n_1,n_2)=\begin{pmatrix}1 & 0\\-\frac{n_2-n_1}{R} & 1\end{pmatrix}
+\]
+で与えられる。ここで $R$ の符号は光学符号規約に従う（中心が像側にある場合を正とするなど、処方の定義に一致させる）。$C$ 成分に相当する屈折パワーは $-(n_2-n_1)/R$ であり、$n_2>n_1$ かつ $R>0$ のとき収束力（負の $C$）となる。
+
+\section{レンズ部分系とカーディナル点}
+
+\subsection{レンズ部分系行列 $M_{\mathrm{lens}}$}
+処方の中で `start_surface..end_surface` を「レンズ部分系」と定義し、その範囲で
+\[
+M_{\mathrm{lens}}=\begin{pmatrix}A&B\\C&D\end{pmatrix}
+\]
+を積算して得る。ここでの積算は、各面の屈折行列と面間伝搬行列を所定順序で掛け合わせることによって行う。波長依存の屈折率 $n(\lambda)$ を用いるため、$M_{\mathrm{lens}}$ は評価波長ごとに異なる。
+
+\subsection{EFL と BFL（パラキシャル）}
+空気$\to$空気の近軸系で、レンズ部分系の焦点距離は
+\[
+f' = -\frac{1}{C}
+\]
+で定義する（これを EFL と呼ぶ）。また、後側頂点から後側焦点までの距離（パラキシャル BFL）は
+\[
+\mathrm{BFL}_{\mathrm{parax}} = -\frac{A}{C}
+\]
+となる。
+
+\paragraph{recipe BFL との違い}
+処方上の像面位置が「最後厚み」で与えられている場合、その厚みは \textbf{recipe像面}を定義するだけであり、必ずしも $\mathrm{BFL}_{\mathrm{parax}}$ と一致しない。両者の差は近軸デフォーカス（像面ズレ）の指標として扱える。
+
+\subsection{主平面と焦点位置（絶対化の必要性）}
+Newton公式や有限共役の距離定義のために、主平面 $H,H'$ および焦点 $F,F'$ の位置は絶対座標へ変換する必要がある。本仕様では
+\begin{itemize}
+  \item 前側主平面の絶対位置を $z_H$
+  \item 後側主平面の絶対位置を $z_{H'}$
+\end{itemize}
+とし、焦点距離 $f$ を用いて
+\[
+z_F = z_H - f,
+\qquad
+z_{F'} = z_{H'} + f
+\]
+で前側焦点 $F$ と後側焦点 $F'$ の絶対位置を定義する。
+
+\section{拡張（Plan B）：全系行列（object$\to$image）}
+
+\subsection{ReportConfig 拡張パラメータ}
+倍率と Newton公式には「物体面」と「像面」が必要であるため、`ReportConfig` を以下で拡張する。
+\begin{itemize}
+  \item \texttt{object\_distance\_mm}: $z_o$（mm）。物体面の絶対位置。通常 $z_o<0$。
+  \item \texttt{object\_medium}: 物体側媒質名。屈折率 $n_o$ を得る。
+  \item \texttt{image\_mode}: \texttt{recipe} / \texttt{paraxial} / \texttt{absolute}
+  \item \texttt{image\_z\_abs}: \texttt{absolute} のときの像面絶対位置 $z_i$
+  \item \texttt{image\_medium}: 像側媒質名。屈折率 $n_i$ を得る。
+\end{itemize}
+
+\subsection{物体側外部伝搬 $T_o$}
+物体面から start 頂点までの物理距離を
+\[
+d_o = z_{\mathrm{start}} - z_o
+\]
+とし、reduced距離
+\[
+L_o = \frac{d_o}{n_o}
+\]
+によって
+\[
+T_o = \begin{pmatrix}1&L_o\\0&1\end{pmatrix}
+\]
+を導入する。
+
+\paragraph{無限遠入力の規約}
+\texttt{object\_distance\_mm = None} の場合は無限遠入力とみなし、本仕様では規約として
+\[
+L_o = 0,\quad T_o = I
+\]
+とする。これは「物体面を明示せず、入射は角（$u$）で指定される」という運用に対応する。したがって、この場合の $\beta=A_s$ は有限共役の「横倍率」としての解釈が弱くなる（後述の注意点参照）。
+
+\subsection{像側外部伝搬 $T_i$ と像面決定}
+像面位置 $z_i$ に対し
+\[
+d_i = z_i - z_{\mathrm{end}},
+\qquad
+L_i = \frac{d_i}{n_i},
+\qquad
+T_i=\begin{pmatrix}1&L_i\\0&1\end{pmatrix}
+\]
+を定義する。
+
+像面 $z_i$ は \texttt{image\_mode} により決める。
+\begin{itemize}
+  \item \texttt{recipe}: 処方の最後厚み（像面直前厚み）から $z_i$ を決定
+  \item \texttt{absolute}: \texttt{image\_z\_abs} をそのまま採用
+  \item \texttt{paraxial}:
+    \begin{itemize}
+      \item 無限遠（$L_o=0$）では $z_i = z_{\mathrm{end}} + \mathrm{BFL}_{\mathrm{parax}}$
+      \item 有限共役では \textbf{結像条件 $B_s=0$} を解いて $z_i$ を決定
+    \end{itemize}
+\end{itemize}
+
+\subsection{全系行列 $M_{\mathrm{sys}}$}
+以上より物体面から像面までの全系行列を
+\[
+M_{\mathrm{sys}} = T_i\, M_{\mathrm{lens}}\, T_o
+=
+\begin{pmatrix}
+A_s&B_s\\C_s&D_s
+\end{pmatrix}
+\]
+と定義する。
+
+\section{有限共役の結像条件（核心）}
+
+\subsection{結像条件 $B_s=0$ の意味}
+全系で
+\[
+\begin{pmatrix}y_i\\u_i\end{pmatrix}
+=
+\begin{pmatrix}A_s&B_s\\C_s&D_s\end{pmatrix}
+\begin{pmatrix}y_o\\u_o\end{pmatrix}
+\]
+とすると、像面での像高は
+\[
+y_i = A_s\,y_o + B_s\,u_o
+\]
+で与えられる。ここで \textbf{同じ物体点} $y_o$ から出た異なる入射角成分 $u_o$ が、像面で同一点に集まる（点結像）ためには、$u_o$ への依存が消える必要があり、したがって
+\[
+\boxed{B_s = 0}
+\]
+が近軸結像条件となる。
+
+\subsection{$B_s$ の展開と像面解}
+$M_{\mathrm{sys}}=T_i M_{\mathrm{lens}} T_o$ を展開すると
+\[
+B_s = (A L_o + B) + (C L_o + D)\,L_i
+\]
+である。有限共役で \texttt{image\_mode=paraxial} のとき、本仕様はこれを 0 に置き
+\[
+\boxed{
+L_i = -\frac{A L_o + B}{C L_o + D}
+}
+\]
+を解として採用する。像面位置は
+\[
+d_i = n_i L_i,
+\qquad
+\boxed{z_i = z_{\mathrm{end}} + d_i}
+\]
+で得る。
+
+\subsection{focus\_indicator\_B（$B_s$）の診断的価値}
+実装は解いた $L_i$ を用いて $M_{\mathrm{sys}}$ を再構成し、$B_s$ を出力する。この $B_s$ は
+\begin{itemize}
+  \item recipe像面が合焦しているか（$B_s$ が小さいか）を診断できる
+  \item paraxial合焦面を解いた場合、その正しさ（数値誤差レベルで 0 か）を確認できる
+\end{itemize}
+という点で極めて有用である。典型的には $|B_s|\lesssim 10^{-10}$ 程度なら「機械精度で合焦」とみなせる。
+
+\section{倍率定義（Plan B）}
+
+\subsection{横倍率 $\beta$}
+結像条件（$B_s\simeq 0$）が成立するとき、像高は
+\[
+y_i \approx A_s y_o
+\]
+となるため、横倍率を
+\[
+\boxed{\beta = A_s}
+\]
+と定義する。実像形成では倒立像となることが多く、その場合 $\beta<0$ となる。
+
+\subsection{縦倍率 $\alpha$ と軸方向倍率}
+「縦倍率」という用語は文脈により曖昧であるため、本仕様では次を明確に分離する。
+
+\paragraph{(1) 縦倍率 $\alpha$（一般的な倍率）}
+撮像系の倍率として通常用いられるのは横倍率であり、本仕様では
+\[
+\boxed{\alpha = \beta}
+\]
+とする（出力上も \texttt{alpha (==beta)} を示す）。
+
+\paragraph{(2) 軸方向倍率（longitudinal magnification）}
+焦点深度・像側の軸方向スケールの議論で現れる一次の関係として
+\[
+\boxed{
+m_L = \beta^2\frac{n_i}{n_o}
+}
+\]
+を \texttt{longitudinal\_mag} として出力する。空気$\to$空気なら $m_L=\beta^2$ である。
+
+\subsection{角倍率 $\gamma$}
+reduced-angle 成分 $u$ の倍率を
+\[
+\boxed{\gamma_u = D_s}
+\]
+と定義する。角そのもの（$\theta$）の倍率が必要な場合、$u=n\theta$ より
+\[
+\boxed{\gamma_\theta = \frac{n_o}{n_i}D_s}
+\]
+を出力する。空気$\to$空気では $n_o=n_i=1$ なので $\gamma_\theta=\gamma_u$ となる。
+
+\paragraph{$\gamma$ の解釈上の注意}
+有限共役では物体側・像側伝搬を含むため、$|D_s|>1$ となる場合があり得る。また符号は像の向き（倒立）と連動して反転することがある。$\gamma$ は単独で直感的評価をしにくいので、評価の中心は「$B_s\simeq 0$ が成立し、$\beta$ と Newton が整合しているか」に置く。
+
+\section{Newton公式}
+
+\subsection{焦点位置 $z_F, z_{F'}$}
+主平面の絶対位置 $z_H, z_{H'}$ と焦点距離 $f$ を用い、
+\[
+\boxed{z_F = z_H - f},
+\qquad
+\boxed{z_{F'} = z_{H'} + f}
+\]
+で前側焦点と後側焦点の絶対位置を定義する。
+
+\subsection{Newton距離 $x, x'$（符号を固定）}
+Newton公式を
+\[
+x x' = f^2
+\]
+の形で用いるため、距離の向きを固定する。
+\begin{itemize}
+  \item 物体側距離：物体側へ正となるよう
+  \[
+  \boxed{x = z_F - z_o}
+  \]
+  \item 像側距離：像側へ正となるよう
+  \[
+  \boxed{x' = z_i - z_{F'}}
+  \]
+\end{itemize}
+空気$\to$空気で近軸結像が成立するとき
+\[
+\boxed{x x' \approx f^2}
+\]
+が期待される。実装では相対誤差
+\[
+\mathrm{relerr} = \frac{|x x' - f^2|}{f^2}
+\]
+を出力し、定義・絶対座標化・符号規約が矛盾していないことを検証する。
+
+\paragraph{無限遠入力の扱い}
+\texttt{object\_distance\_mm=None}（無限遠）では $x\to\infty$ の極限になり、数値的・概念的に Newtonチェックが意味を持ちにくいため、本仕様では Newtonチェックをスキップする運用を推奨する。
+
+\section{test1\_2 結果の記述と妥当性説明}
+
+\subsection{条件}
+有限共役モードとして以下を設定する。
+\begin{itemize}
+  \item 物体面：$z_o=-500.0\ \mathrm{mm}$
+  \item 像面モード：\texttt{image\_mode = paraxial}（有限共役なので $B_s=0$ を解く）
+  \item 物体側・像側媒質：air（$n_o=n_i=1$）
+  \item 評価波長：報告規約の参照波長（通常中央波長）
+\end{itemize}
+
+\subsection{出力（抜粋）}
+\begin{verbatim}
+--- Magnifications (Plan B) --- 
+beta (lateral)        = -0.236944000
+alpha (==beta)        = -0.236944000
+gamma_u (u-mag)       = -4.220406504
+gamma_theta (theta)   = -4.220406504
+longitudinal_mag      = 0.056142459
+focus_indicator_B (Bs)= -1.278976924e-13
+
+--- Newton relation check ---     
+z_o   = -500.000000 mm
+z_i   = 142.926292 mm
+z_F   = -77.955542 mm
+z_F'  = 119.231679 mm
+x     = 422.044458 mm
+x'    = 23.694614 mm
+x*x'  = 1.000018044e+04
+f^2   = 1.000018044e+04
+relerr= 7.276e-16
+\end{verbatim}
+
+\subsection{妥当性（詳細）}
+
+\subsubsection*{(1) $B_s \simeq 0$ が示すもの：有限共役の合焦面が機械精度で得られた}
+本仕様の有限共役 paraxial モードは、$B_s=0$ から像側 reduced距離 $L_i$ を解き、その結果を用いて像面 $z_i$ を決定する。したがって、再計算された
+\[
+B_s \approx -1.28\times 10^{-13}
+\]
+は倍精度浮動小数点の丸め誤差に近いレベルであり、「結像条件がほぼ完全に満たされている」ことを意味する。すなわちこの状態では $y_i$ が $u_o$ に依存せず、点結像の一次条件が成立する。
+
+\subsubsection*{(2) $\beta$ の符号と大きさ：倒立像と有限共役倍率として自然}
+$\beta=A_s$ であり、$\beta<0$ は倒立像（実像形成）を示す。有限共役での撮像系の典型挙動と整合する。大きさ $|\beta|\approx 0.237$ は、物体距離 500mm と像距離 143mm 程度の共役関係として十分自然なスケールである。
+
+\subsubsection*{(3) longitudinal\_mag の内部整合：$m_L=\beta^2$ を満たす}
+空気$\to$空気では
+\[
+m_L=\beta^2
+\]
+であり、出力
+\[
+\beta=-0.236944 \Rightarrow \beta^2\approx 0.05614
+\]
+と
+\[
+\mathrm{longitudinal\_mag}=0.056142459
+\]
+が一致する。これは倍率ブロックの定義と実装が一致していることの強い内部検算となる。
+
+\subsubsection*{(4) $\gamma$ の値（$D_s$）は単独評価しない：整合性は $B_s$ と Newton で担保する}
+$\gamma_u=D_s$ は reduced-angle の角成分倍率である。有限共役では外部伝搬が入るため、$|D_s|>1$ となる場合があり得る。符号が負であることも像の向き反転と整合し得る。重要なのは「合焦（$B_s\simeq 0$）の上で、$\beta$ と Newton が矛盾しない」ことであり、本結果では矛盾は観測されない。
+
+\subsubsection*{(5) Newton公式が機械精度で一致：定義・絶対座標化・符号が一貫}
+定義により
+\[
+x=z_F-z_o,\qquad x'=z_i-z_{F'}
+\]
+であり、出力の $x, x'$ はその通りに計算されている。さらに
+\[
+x x' = f^2
+\]
+が
+\[
+\mathrm{relerr}\approx 7.3\times 10^{-16}
+\]
+で成立している。これは倍精度浮動小数点の丸め限界に近い誤差であり、以下が相互に矛盾していないことを強く示す。
+\begin{itemize}
+  \item 焦点位置 $z_F, z_{F'}$ の絶対化
+  \item 物体・像の絶対座標 $z_o, z_i$
+  \item Newton距離 $x,x'$ の符号規約
+  \item 焦点距離 $f$（EFL）
+\end{itemize}
+したがって、仕様に基づく実装が数値的に正しく接続されていると判断できる。
+
+\section{注意点と推奨運用}
+
+\subsection{無限遠入力（object\_distance\_mm=None）のときの倍率解釈}
+無限遠入力では規約として $L_o=0$ を置くため、全系行列は「物体面を明示した共役系」ではなく、角入力に近い系となる。このとき
+\begin{itemize}
+  \item $\beta=A_s$ は有限共役の横倍率としての意味が弱い
+  \item $B_s$ はむしろ「角 $u$ を像高 $y$ に変換する係数」として現れやすく、EFLスケールを持つ
+  \item Newtonチェックは適用しない
+\end{itemize}
+という整理が重要である。
+
+\subsection{パラキシャル合焦と実レイトレ合焦の違い}
+有限共役 paraxial モードで得られる像面は一次条件（$B_s=0$）に基づくものであり、収差を含めた最良焦点（最小RMS等）とは一致しないことがある。ただし、一次の整合性確認としては $B_s\simeq 0$ と Newton一致が最重要である。
+
+\subsection{レイトレーシング（opticspy）との役割分担}
+opticspy の多くの例は視野角ベースで光線束を生成するため、有限共役で物体点像を厳密に評価するには「物体面（高さ）基準での光線生成」など追加設計が必要になる。本仕様は一次評価を担い、レイトレとの比較は役割を分けて行うのが望ましい。
+
+\section{最小受入れ条件（テスト指標）}
+有限共役テスト（例：test1\_2）では、以下が成立することを受入れ基準とする。
+\begin{itemize}
+  \item $|B_s|$ が丸め誤差レベル（例：$10^{-10}$ 以下、理想は $10^{-13}$ 以下）
+  \item $\alpha=\beta$
+  \item $\mathrm{longitudinal\_mag}=\beta^2(n_i/n_o)$（air$\to$air なら $\beta^2$）
+  \item Newton相対誤差 $\mathrm{relerr}\lesssim 10^{-12}$（理想は $10^{-15}$ 付近）
+\end{itemize}
+
+\end{document}

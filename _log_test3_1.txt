@@ -1,0 +1,29 @@
+[YAML reload] surfaces: 10 -> 10
+[YAML reload] WL: [656.3, 587.6, 486.1] -> [656.3, 587.6, 486.1]
+Add field angle:0.0 degree done
+Add field angle:5.0 degree done
+Add field angle:7.0 degree done
+Add surface:  1
+Add surface:  2
+Add surface:  3
+Add surface:  4
+Add surface:  5
+Add surface:  6
+Add surface:  7
+Add surface:  8
+Add surface:  9
+Add surface:  10
+------------Calculating EFL---------------
+start surface: 2
+end surface: 9
+Rear Focal Length f': 95.67148555783207
+---------Calculating Entrance Pupil Position-----------
+STOP Surface 4
+STOP thickness 3.48399646385
+start surface: 2
+end surface: 3
+entrance pupil position EP: 20.261685091226504
+------------Calculating OAL---------------
+start surface: 2
+end surface: 10
+Overall length: 147.88311532673998

@@ -1,3 +1,4 @@
+from opticspy._plot_output import save_figure
 
 import lens, trace, cal_tools
 import matplotlib.pyplot as __plt__
@@ -24,7 +25,7 @@ for ray in ray_list:
 
 fig = __plt__.figure()
 __plt__.plot(x2,y2,'bo')
-__plt__.show()
+save_figure(__plt__, 'opticspy_ray_tracing_tests_test4_build_singlet__module.png', outdir='out')
 
 rms = cal_tools.rms(ray_list)
 print rms

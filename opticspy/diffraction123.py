@@ -1,3 +1,5 @@
+from opticspy._plot_output import save_figure
+
 import numpy as __np__
 from numpy import sin as __sin__
 from numpy import cos as __cos__
@@ -23,7 +25,7 @@ def doubleslit(b=0.1,a=0.4,lambda_1=632,z=0.5):
     fig = __plt__.figure(1,figsize=(12,8), dpi=80)
     __plt__.imshow(-y)
     __plt__.set_cmap('Greys')
-    __plt__.show()
+    save_figure(__plt__, 'opticspy_diffraction123__doubleslit.png', outdir='out')
     
     theta = __np__.linspace(-0.04,0.04,1000)
     beta = __np__.pi*(b/1000)/(lambda_1/(10**9))*__sin__(theta)
@@ -33,4 +35,4 @@ def doubleslit(b=0.1,a=0.4,lambda_1=632,z=0.5):
     fig = __plt__.figure(2,figsize=(12, 8), dpi=80)
     __plt__.plot(theta*z*1000,y)
     __plt__.plot(theta*z*1000,y1,"g--")
-    __plt__.show()
+    save_figure(__plt__, 'opticspy_diffraction123__doubleslit_2.png', outdir='out')

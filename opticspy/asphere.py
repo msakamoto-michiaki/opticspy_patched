@@ -1,4 +1,7 @@
 from __future__ import division as __division__
+
+from opticspy._plot_output import save_figure
+
 import numpy as __np__
 from numpy import sqrt as __sqrt__
 from numpy import cos as __cos__
@@ -42,7 +45,7 @@ class Coefficient(object):
 		ax = Axes3D(fig)
 		surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=__cm__.RdYlGn,
 	        linewidth=0, antialiased=False, alpha = 0.6)
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_asphere__aspheresurface.png', outdir='out')
 		return 0
 
 	def aspherematrix(self):
@@ -60,7 +63,7 @@ class Coefficient(object):
 		ax = Axes3D(fig)
 		surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=__cm__.RdYlGn,
 	        linewidth=0, antialiased=False, alpha = 0.6)
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_asphere__aspherematrix.png', outdir='out')
 		return Z
 
 	def asphereline(self):
@@ -73,7 +76,7 @@ class Coefficient(object):
 		fig = __plt__.figure(figsize=(12, 8), dpi=80)
 		__plt__.plot(r,Z)
 		__plt__.axis('equal')
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_asphere__asphereline.png', outdir='out')
 
 def __aspherepolar__(coefficient,r):
 	R,k,a2,a3,a4,a5,a6,a7,a8,a9,a10 = coefficient

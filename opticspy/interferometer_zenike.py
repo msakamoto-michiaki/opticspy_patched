@@ -1,4 +1,7 @@
 from __future__ import division as __division__
+
+from opticspy._plot_output import save_figure
+
 import numpy as __np__
 from numpy import cos as __cos__
 from numpy import sin as __sin__
@@ -175,7 +178,7 @@ def twyman_green(coefficients, lambda_1 = 632, PR = 1):
 	__plt__.xlabel(label,fontsize=16)
 	__plt__.title('Twyman Green Interferogram',fontsize=16)
 	fig.set_tight_layout(True)
-	__plt__.show()
+	save_figure(__plt__, 'opticspy_interferometer_zenike__twyman_green.png', outdir='out')
 
 ################################################################
 
@@ -218,7 +221,7 @@ def phase_shift(coefficients, lambda_1 = 632, PR = 1, type = '4-step', noise = 0
 		im = __plt__.imshow(OPD,extent=[-PR,PR,-PR,PR],cmap=__cm__.RdYlGn)
 		__plt__.colorbar()
 		__plt__.title('Surface figure',fontsize=16)
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_interferometer_zenike__phase_shift.png', outdir='out')
 
 		I1 = Ia + Ib + 2 * __np__.sqrt(Ia*Ib) * __np__.cos(ph)
 		I2 = Ia + Ib + 2 * __np__.sqrt(Ia*Ib) * __np__.cos(ph+90.0/180*__np__.pi)
@@ -271,7 +274,7 @@ def rebuild_surface(data, shifttype = "4-step", unwraptype = "unwrap2D", noise =
 		im = __plt__.imshow(ph,extent=[-PR,PR,-PR,PR],cmap=__cm__.RdYlGn)
 		__plt__.title('Wrapped phase',fontsize=16)
 		__plt__.colorbar()
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_interferometer_zenike__rebuild_surface.png', outdir='out')
 		#-----------------------Phase unwrap-------------------------
 		rebuild_ph = __unwrap2D__(ph,type = "simple")
 		rebuild_surface = rebuild_ph/2/__np__.pi*PR/2
@@ -280,7 +283,7 @@ def rebuild_surface(data, shifttype = "4-step", unwraptype = "unwrap2D", noise =
 		im = __plt__.imshow(rebuild_surface,extent=[-PR,PR,-PR,PR],cmap=__cm__.RdYlGn)
 		__plt__.title('Rebuild Surface',fontsize=16)
 		__plt__.colorbar()
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_interferometer_zenike__rebuild_surface_2.png', outdir='out')
 		return rebuild_surface
 
 	elif shifttype == "4-step" and unwraptype == "unwrap2D" and noise == True:
@@ -294,7 +297,7 @@ def rebuild_surface(data, shifttype = "4-step", unwraptype = "unwrap2D", noise =
 		im = __plt__.imshow(ph,extent=[-PR,PR,-PR,PR],cmap=__cm__.RdYlGn)
 		__plt__.title('Wrapped phase',fontsize=16)
 		__plt__.colorbar()
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_interferometer_zenike__rebuild_surface_3.png', outdir='out')
 		#-----------------------Phase unwrap-------------------------
 		ph1 = [ph,M,s]
 		rebuild_ph = __unwrap2D__(ph1,noise = True)
@@ -304,7 +307,7 @@ def rebuild_surface(data, shifttype = "4-step", unwraptype = "unwrap2D", noise =
 		im = __plt__.imshow(rebuild_surface,extent=[-PR,PR,-PR,PR],cmap=__cm__.RdYlGn)
 		__plt__.title('Rebuild Surface',fontsize=16)
 		__plt__.colorbar()
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_interferometer_zenike__rebuild_surface_4.png', outdir='out')
 		return rebuild_surface
 
 	else:

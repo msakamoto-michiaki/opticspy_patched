@@ -1,4 +1,7 @@
 from __future__ import division as __division__
+
+from opticspy._plot_output import save_figure
+
 import numpy as __np__
 from numpy import cos as __cos__
 from numpy import sin as __sin__
@@ -76,7 +79,7 @@ class Coefficient(object):
 
 		# p2v = round(__tools__.peak2valley(Z),5)
 		# rms1 = round(__tools__.rms(Z),5)
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_zernike_rec__zernikesurface.png', outdir='out')
 	def zernikemap(self):
 		a = self.__a__
 		b = __sqrt__(1-a**2)
@@ -89,7 +92,7 @@ class Coefficient(object):
 		im = __plt__.pcolormesh(X, Y, Z, cmap=__cm__.RdYlGn)
 		__plt__.colorbar()
 		ax.set_aspect('equal', 'datalim')
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_zernike_rec__zernikemap.png', outdir='out')
 
 		return 0
 
@@ -143,7 +146,7 @@ class Coefficient(object):
 		fig = __plt__.figure(figsize=(9, 6), dpi=80)
 		__plt__.imshow(abs(PSF),cmap=__cm__.RdYlGn)
 		__plt__.colorbar()
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_zernike_rec__psf.png', outdir='out')
 		return 0
 
 	def mtf(self,lambda_1=632*10**(-9),z=0.1,matrix = False):
@@ -156,7 +159,7 @@ class Coefficient(object):
 		fig = __plt__.figure(figsize=(9, 6), dpi=80)
 		__plt__.imshow(abs(MTF),cmap=__cm__.bwr)
 		__plt__.colorbar()
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_zernike_rec__mtf.png', outdir='out')
 		if matrix == True:
 			return MTF
 		else:
@@ -175,7 +178,7 @@ class Coefficient(object):
 		A[d//2-l1//2+1:d//2+l1//2+1,d//2-l1//2+1:d//2+l1//2+1] = PTF[d//2-l1//2+1:d//2+l1//2+1,d//2-l1//2+1:d//2+l1//2+1]
 		__plt__.imshow(abs(A),cmap=__cm__.rainbow)
 		__plt__.colorbar()
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_zernike_rec__ptf.png', outdir='out')
 		return 0
 
 def __zernikepolar__(coefficient,a,r,u):

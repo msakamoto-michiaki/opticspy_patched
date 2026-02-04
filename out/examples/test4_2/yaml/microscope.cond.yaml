@@ -1,0 +1,117 @@
+title: 40X POWER, 0.70 NA  PLAN-ACHROMAT
+dim: M
+wavelengths:
+- 656.3
+- 546.1
+- 486.1
+ref: 3
+wtw:
+- 14.0
+- 71.0
+- 90.0
+- 26.0
+- 2.0
+wtf:
+- 1.0
+- 1.0
+- 1.0
+- 1.0
+epd: null
+xan_deg: []
+yan_deg:
+- 0.0
+- 2.0
+- 3.8
+fno: null
+na: null
+nao: 0.0175
+vux:
+- 9.99999999806711e-07
+- 0.002811668945310042
+- 0.006323716308589966
+- 0.01123552050779997
+vlx:
+- 9.99999999806711e-07
+- 0.002811668945310042
+- 0.006323716308589966
+- 0.01123552050779997
+vuy:
+- 9.99999999806711e-07
+- 0.03497056689449996
+- 0.06311898095699997
+- 0.128336571289
+vly:
+- 9.99999999806711e-07
+- 0.01937303271479995
+- 0.05324196679689996
+- 0.09204354150390004
+ca: false
+pim: true
+go: true
+ini: '''ORA'''
+global_preamble:
+- RDM
+- 'LEN       "VERSION: 10.7 SR1       LENS VERSION: 80       Creation Date: 07-Mar-2016"'
+global_between:
+  18:
+  - PIM
+  19:
+  - GO
+global_postamble: []
+surface_cmds:
+  1:
+  - RED 0.025
+  3:
+  - CIR 3.81
+  - CIR EDG 5.08
+  4:
+  - CIR 5.08
+  - CIR EDG 5.08
+  5:
+  - THC 4
+  - CIR 4.45
+  - CIR EDG 5.08
+  6:
+  - THC -4
+  - STO
+  7:
+  - CIR 4.15
+  - CIR EDG 4.45
+  8:
+  - CIR EDG 4.15
+  9:
+  - CIR 4.33
+  - CIR EDG 4.76
+  10:
+  - CIR EDG 4.76
+  11:
+  - CIR EDG 4.76
+  12:
+  - CIR 4.125
+  - CIR EDG 4.76
+  13:
+  - CIR EDG 4.572
+  14:
+  - CIR 3.937
+  - CIR EDG 4.572
+  15:
+  - CIR EDG 3.683
+  16:
+  - THC 0
+  - CIR 1.27
+  17:
+  - CIR 2.54
+  - CIR EDG 2.54
+  18:
+  - CIR 2.54
+  - CIR EDG 2.54
+  19:
+  - THC 0
+plane_surfaces:
+- 1
+- 2
+- 6
+- 17
+- 18
+- 19
+extras: {}

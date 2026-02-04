@@ -1,4 +1,7 @@
 from __future__ import division as __division__
+
+from opticspy._plot_output import save_figure
+
 import numpy as __np__
 import matplotlib.pyplot as __plt__
 from matplotlib import cm as __cm__
@@ -47,7 +50,7 @@ def hartmann(coefficients, r, R):
 	ax.set_axis_bgcolor('black')
 	__plt__.title('Hartmann Spotdiagram',fontsize=18)
 	__plt__.plot(Ax_list,Ay_list,'wo')
-	__plt__.show()
+	save_figure(__plt__, 'opticspy_hartmann__hartmann.png', outdir='out')
 
 	return M,r
 
@@ -70,7 +73,7 @@ def hartmann_rebuild(M,r):
 				print('wrong')
 	fig = __plt__.figure(2,figsize=(6, 6))
 	__plt__.imshow(w)
-	__plt__.show()
+	save_figure(__plt__, 'opticspy_hartmann__hartmann_rebuild.png', outdir='out')
 	# x = __np__.linspace(-1,1,s)
 	# [X,Y] = __np__.meshgrid(x,x)
 	# fig = __plt__.figure(figsize=(8, 8), dpi=80)

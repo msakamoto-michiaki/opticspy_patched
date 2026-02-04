@@ -1,3 +1,5 @@
+from opticspy._plot_output import save_figure
+
 import numpy as __np__
 import matplotlib.pyplot as __plt__
 from matplotlib import cm as __cm__
@@ -74,5 +76,5 @@ def gaussbeam(w0 = 1,P = 5,z0 = 5, z = 10):
 			  "Rayleigh Range = " + str(z0) + "\n" +\
 			  "Axial Distance = " + str(z)
 	ax.text2D(0.02, 0.01, label_1, transform=ax.transAxes,fontsize=14)
-	__plt__.show()
+	save_figure(__plt__, 'opticspy_gauss__gaussbeam.png', outdir='out')
 	return I

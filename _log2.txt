@@ -1,0 +1,71 @@
+[YAML reload] surfaces: 10 -> 10
+[YAML reload] WL: [656.3, 587.6, 486.1] -> [656.3, 587.6, 486.1]
+Add field angle:0.0 degree done
+Add field angle:5.0 degree done
+Add field angle:7.0 degree done
+Add surface:  1
+Add surface:  2
+Add surface:  3
+Add surface:  4
+Add surface:  5
+Add surface:  6
+Add surface:  7
+Add surface:  8
+Add surface:  9
+Add surface:  10
+------------Calculating EFL---------------
+start surface: 2
+end surface: 9
+Rear Focal Length f': 95.67148555783207
+---------Calculating Entrance Pupil Position-----------
+STOP Surface 4
+STOP thickness 3.48399646385
+start surface: 2
+end surface: 3
+entrance pupil position EP: 20.261685091226504
+------------Calculating OAL---------------
+start surface: 2
+end surface: 10
+Overall length: 147.88311532673998
+
+============================================
+ First-order comparison (opticspy vs ABCD direct)
+============================================
+EFY full (2..9)  opticspy=95.671485558  ours=95.671485558  Δ=+1.421e-14
+EFY part (2..3)                 opticspy=151.891433704  ours=151.891433704  Δ=+0.000e+00
+BFL recipe (last thickness)      opticspy=4.000000000  ours=4.000000000  Δ=+0.000e+00
+BFL paraxial (-A/C)              opticspy=   (not provided)  ours=2.476473364
+image_position                  opticspy=2.467320331  ours=2.467320331  Δ=-7.105e-15
+EP (entrance pupil pos)         opticspy=20.261685091  ours=20.261685091  Δ=+0.000e+00
+EX (exit pupil pos)             opticspy=-57.217088362  ours=-57.217088362  Δ=-1.421e-13
+OAL (2..7)                      opticspy=122.513943834  ours=122.513943834  Δ=+0.000e+00
+------------------start drawing lens system-------------
+saved: out/opticspy_ray_tracing_draw__draw_system.png
+saved: out/opticspy_ray_tracing_field__grid_generator.png
+RMS 5.210527613744387
+RMS 4.91195151073293
+RMS 4.353072862118748
+saved: out/opticspy_ray_tracing_analysis__spotdiagram.png
+saved: out/opticspy_ray_tracing_analysis__Ray_fan.png
+============================================
+ Fixed-style ABCD / Principal plane report 
+ (reduced-angle [y, u], nd = 587.6 nm)
+============================================
+start surface: 2
+end surface: 9
+A = 0.025885177
+B = 92.181696826
+C = -0.010452435
+D = 1.409176768
+
+--- Cardinal points ---
+f'  = 95.671486 mm
+H   = -39.146549 mm  (from surface 2 vertex)
+H'  = 50.688103 mm (from surface 9 vertex)
+BFL = 2.476473 mm
+
+--- Image plane check ---
+z9           = 143.883115
+z10 (recipe)  = 147.883115
+z9 + BFL     = 146.359589
+Δz           = 1.523526636e+00 mm

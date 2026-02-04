@@ -1,4 +1,7 @@
 from __future__ import division as __division__
+
+from opticspy._plot_output import save_figure
+
 import matplotlib.pyplot as plt
 from matplotlib.path import Path
 import matplotlib.patches as patches
@@ -153,7 +156,7 @@ def draw_system(Lens):
     d = max(draw_diameter_list)
     ax.set_ylim(-d/4*3,d/4*3)
     plt.axis('equal')
-    plt.show()
+    save_figure(plt, 'opticspy_ray_tracing_draw__draw_system.png', outdir='out')
 
 
 def draw_rays(Lens):

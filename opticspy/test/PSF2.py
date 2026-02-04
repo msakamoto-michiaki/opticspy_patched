@@ -1,3 +1,5 @@
+from opticspy._plot_output import save_figure
+
 import numpy as __np__
 from numpy import sqrt as __sqrt__
 from numpy import cos as __cos__
@@ -27,7 +29,7 @@ d = 400
 A = __np__.zeros([d,d])
 A[d/2-49:d/2+51,d/2-49:d/2+51] = Z
 __plt__.imshow(A)
-__plt__.show()
+save_figure(__plt__, 'opticspy_test_PSF2__module.png', outdir='out')
 def exp_func(a):
 	if a == 0:
 		return 0
@@ -40,4 +42,4 @@ fig = __plt__.figure(2)
 AP = abs(__fftshift__(__fft2__(__fftshift__(abbe))))**2
 AP = AP/AP.max()
 __plt__.imshow(AP)
-__plt__.show()
+save_figure(__plt__, 'opticspy_test_PSF2__module_2.png', outdir='out')

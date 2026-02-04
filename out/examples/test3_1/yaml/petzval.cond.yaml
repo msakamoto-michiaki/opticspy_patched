@@ -1,0 +1,73 @@
+title: Petzval lens with field flattener     U.S. Patent 2,076,190
+dim: M
+wavelengths:
+- 656.3
+- 587.6
+- 486.1
+ref: 2
+wtw:
+- 1.0
+- 1.0
+- 1.0
+wtf: []
+epd: 50.0
+xan_deg:
+- 0.0
+- 0.0
+- 0.0
+yan_deg:
+- 0.0
+- 5.0
+- 7.0
+fno: null
+na: null
+nao: null
+vux: []
+vlx: []
+vuy:
+- 0.0
+- 0.0
+- 0.0
+vly:
+- 0.0
+- 0.0
+- 0.0
+ca: true
+pim: true
+go: true
+ini: '''ORA'''
+global_preamble:
+- RDM
+- LEN
+global_between:
+  9:
+  - PIM
+  10:
+  - GO
+global_postamble: []
+surface_cmds:
+  2:
+  - CCY 0
+  3:
+  - CCY 0
+  4:
+  - CCY 0
+  - THC 0
+  - STO
+  5:
+  - CCY 0
+  6:
+  - CCY 0
+  7:
+  - CCY 0
+  - THC 0
+  8:
+  - CCY 0
+  9:
+  - CCY 0
+  10:
+  - THC 0
+plane_surfaces:
+- 1
+- 10
+extras: {}

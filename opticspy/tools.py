@@ -1,3 +1,5 @@
+from opticspy._plot_output import save_figure
+
 import numpy as __np__
 import matplotlib.pyplot as __plt__
 from matplotlib import cm as __cm__
@@ -7,12 +9,12 @@ def __apershow__(obj, extent):
 		obj = -abs(obj)
 		__plt__.imshow(obj, extent = [-extent/2,extent/2,-extent/2,extent/2])
 		__plt__.set_cmap('Greys')
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_tools____apershow__.png', outdir='out')
 	else:
 		obj = -abs(obj)
 		__plt__.imshow(obj)
 		__plt__.set_cmap('Greys')
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_tools____apershow___2.png', outdir='out')
 
 def makecircle(a, r, PR):
 	max = a.max()
@@ -90,7 +92,7 @@ def phase_shift_figure(I,PR,type):
 		axarr[1, 1].imshow(-I[3], extent=[-PR,PR,-PR,PR],cmap=__cm__.Greys)
 		axarr[1, 1].set_title(r'$Phase\ shift: 3/2\pi$',fontsize=16)
 		__plt__.suptitle('4-step Phase Shift Interferograms',fontsize=16)
-		__plt__.show()
+		save_figure(__plt__, 'opticspy_tools__phase_shift_figure.png', outdir='out')
 	else:
 		print("No this type of figure")
 
